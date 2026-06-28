@@ -102,21 +102,21 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 11 | Align Tailwind tokens with Figma — verify color scales, typography, spacing match designer's flows; update design.md + index.css | `[ ]` |
-| 12 | Implement typography tokens (font families, type scale, weights) + spacing, radii, shadows, z-index, motion tokens in Tailwind config | `[ ]` |
-| 13 | Build Button component (all variants: primary, secondary, outline, ghost, danger; sizes: sm, md, lg; states: default, hover, focus, disabled, loading) | `[ ]` |
-| 14 | Build Input component (variants: default, error, disabled; with label, helper text, error message) + Select/Dropdown + Textarea | `[ ]` |
-| 15 | Build Card component (variants: default, raised, interactive) | `[ ]` |
-| 16 | Build Badge/Chip component (variants: default, primary, success, warning, danger, info) + discount badge ("20% OFF") | `[ ]` |
-| 17 | Build Modal/BottomSheet component (mobile: bottom sheet; desktop: centered modal; focus trap, backdrop) | `[ ]` |
-| 18 | Build Toast/notification component (variants: success, error, info, warning; auto-dismiss, swipe-to-dismiss) | `[ ]` |
-| 19 | Build Skeleton component (for loading states — line, circle, card, rectangle variants) | `[ ]` |
-| 20 | Build Avatar component (sizes: sm, md, lg; image + initials fallback on primary-100/primary-700) | `[ ]` |
-| 21 | Build DataState wrapper component (handles loading/error/empty/success states declaratively) | `[ ]` |
-| 22 | Build Toggle/Switch component (on/off states, purple active color — per Figma notification settings) | `[ ]` |
-| 23 | Build FAQ Accordion component (expand/collapse, chevron icon — per Figma Help & Support) | `[ ]` |
-| 24a | Build StickyBottomBar component (cart icon + price + "Continue" CTA — per Figma cart/service detail) | `[ ]` |
-| 24b | Create /dev/components demo page showing all UI primitives with all variants | `[ ]` |
+| 11 | Align Tailwind tokens with Figma — verify color scales, typography, spacing match designer's flows; update design.md + index.css | `[x]` |
+| 12 | Implement typography tokens (font families, type scale, weights) + spacing, radii, shadows, z-index, motion tokens in Tailwind config | `[x]` |
+| 13 | Build Button component (all variants: primary, secondary, outline, ghost, danger; sizes: sm, md, lg; states: default, hover, focus, disabled, loading) | `[x]` |
+| 14 | Build Input component (variants: default, error, disabled; with label, helper text, error message) + Select/Dropdown + Textarea | `[x]` |
+| 15 | Build Card component (variants: default, raised, interactive) | `[x]` |
+| 16 | Build Badge/Chip component (variants: default, primary, success, warning, danger, info) + discount badge ("20% OFF") | `[x]` |
+| 17 | Build Modal/BottomSheet component (mobile: bottom sheet; desktop: centered modal; focus trap, backdrop) | `[x]` |
+| 18 | Build Toast/notification component (variants: success, error, info, warning; auto-dismiss, swipe-to-dismiss) | `[x]` |
+| 19 | Build Skeleton component (for loading states — line, circle, card, rectangle variants) | `[x]` |
+| 20 | Build Avatar component (sizes: sm, md, lg; image + initials fallback on primary-100/primary-700) | `[x]` |
+| 21 | Build DataState wrapper component (handles loading/error/empty/success states declaratively) | `[x]` |
+| 22 | Build Toggle/Switch component (on/off states, purple active color — per Figma notification settings) | `[x]` |
+| 23 | Build FAQ Accordion component (expand/collapse, chevron icon — per Figma Help & Support) | `[x]` |
+| 24a | Build StickyBottomBar component (cart icon + price + "Continue" CTA — per Figma cart/service detail) | `[x]` |
+| 24b | Create /dev/components demo page showing all UI primitives with all variants | `[x]` |
 
 > **Step 11** — Figma designs received 2026-06-28. Ready to align tokens.
 
@@ -388,7 +388,7 @@
 | Feature | Steps | Completed | Status |
 |---|---|---|---|
 | F0 — Scaffold | 10 | 10 | `[x]` Complete |
-| F1 — Design System | 15 | 0 | `[ ]` Not started |
+| F1 — Design System | 15 | 15 | `[x]` Complete |
 | F2 — App Shell | 7 | 0 | `[ ]` Not started |
 | F3 — Home | 11 | 0 | `[ ]` Not started |
 | F4 — Catalog | 11 | 0 | `[ ]` Not started |
@@ -405,7 +405,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **10** | **6%** |
+| **TOTAL** | **161** | **25** | **16%** |
 
 ---
 

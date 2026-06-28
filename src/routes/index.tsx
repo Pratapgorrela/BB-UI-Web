@@ -41,6 +41,10 @@ const router = createBrowserRouter([
     path: '/notifications',
     lazy: () => import('../pages/NotificationsPage'),
   },
+  {
+    path: '/dev/components',
+    lazy: () => import('../pages/DevComponentsPage'),
+  },
 ]);
 
 export default router;

@@ -1,6 +1,18 @@
 # Design System — Beauty Bus
 
-> **Design Status:** The designer has completed several mobile flow designs; they will be shared after project setup (F0). When received, the flows are the visual source of truth — run the F1 design alignment task to update this file and the Tailwind tokens to match. Until then, the palette, typography, and component specs below are **approved starting points**.
+> **Design Status:** Figma designs received 2026-06-28. File: Focus-Cube (AoZfqfioGoGq7LpMKghUOq), Page-3 node 184:5. 40+ screens analyzed. Palette and typography confirmed. The flows are now the visual source of truth.
+>
+> **Key Figma observations:**
+> - **Currency**: INR (₹), not USD — prices shown as ₹399, ₹599 etc.
+> - **Bottom nav**: 5 tabs — Home, Services, Bookings, Alerts, Profile
+> - **Categories**: Men, Women, Kids, Seniors, Bride, Groom (6 categories, 2-col grid with purple gradient background + person images)
+> - **Service types**: Combos (bundled services with "20% OFF" badge) + Single Services
+> - **Cart model**: Users add services to cart, then checkout (not single-service booking)
+> - **Price display**: Strikethrough original price + bold discounted price + green discount badge
+> - **Sticky bottom bar**: Cart icon + total price + service count + duration + "Continue" purple CTA
+> - **Booking actions**: Track Van, Reschedule, Rebook, Cancel (active booking) — completed bookings show only Payment Summary
+> - **Floating Support button**: Green FAB on home screen
+> - **Login/Signup**: NOT in Figma — design from brand guidelines
 
 ---
 
@@ -316,7 +328,7 @@ Mobile-first: default styles target mobile. Use `md:`, `lg:`, `xl:` prefixes for
 | **Badge / Chip** | `default`, `primary`, `success`, `warning`, `danger`, `info` | Radius `full`, padding 4px 12px, font `caption` (12px), font-weight 500 |
 | **Calendar** | — | Grid layout, 44px cell minimum, today highlight `primary-100`, selected `primary-500` + white text, disabled `neutral-200` |
 | **TimeSlot Pill** | `available`, `selected`, `unavailable` | Radius `full`, padding 8px 16px, available: `neutral-0` border `neutral-300`, selected: `primary-500` white text, unavailable: `neutral-200` strikethrough |
-| **BottomNav** | — | Height 64px, 4–5 items, active: `primary-500` icon + label, inactive: `neutral-500`, icon 24px, label `caption` |
+| **BottomNav** | — | Height 64px, 5 items (Home, Services, Bookings, Alerts, Profile), active: `primary-500` filled icon + label, inactive: `neutral-500` outline icon, icon 24px, label `caption` |
 | **Booking Stepper** | — | Horizontal steps, active step `primary-500`, completed `success-500` + check icon, upcoming `neutral-300`, connector lines between |
 | **Avatar** | sizes: `sm` (32px), `md` (40px), `lg` (56px) | Radius `full`, fallback with initials on `primary-100` text `primary-700` |
 | **Toast** | `success`, `error`, `info`, `warning` | Radius `lg`, shadow `lg`, auto-dismiss 5s, swipe-to-dismiss on mobile, max-width 400px |

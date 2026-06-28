@@ -8,7 +8,7 @@ import {
 import {
   Button, TextInput, Select, Textarea, Card, Badge, DiscountBadge,
   Skeleton, SkeletonText, SkeletonCard, Avatar, Modal, ToastProvider,
-  Toggle, Accordion, StickyBottomBar, DataState,
+  Toggle, Accordion, DataState,
 } from '../components/ui';
 import { ToastDemo } from './dev/ToastDemo';
 import {
@@ -552,17 +552,24 @@ export function Component() {
           {/* ════════════════════ STICKY BAR ════════════════════ */}
           <SectionHeader id="stickybar" label="Sticky Bar" description="Fixed bottom bar with cart icon, price summary, and CTA. 72px height. Per Figma cart screen." />
 
-          <Card variant="raised" padding="md">
-            <p className="text-body-sm text-neutral-500 mb-3">
-              The sticky bar is rendered fixed at the bottom of the viewport. Scroll down to see it.
-            </p>
-            <div className="flex gap-3 flex-wrap text-body-sm">
-              <Badge variant="primary">Cart icon + count badge</Badge>
-              <Badge variant="primary">INR price</Badge>
-              <Badge variant="primary">Service count</Badge>
-              <Badge variant="primary">Duration</Badge>
-              <Badge variant="primary">Continue CTA</Badge>
+          <Card variant="raised" padding="none">
+            <div className="relative border border-neutral-300 rounded-lg overflow-hidden">
+              <div className="bg-neutral-100 h-24 flex items-center justify-center text-caption text-neutral-400">
+                Page content above the bar
+              </div>
+              <div className="bg-neutral-0 border-t border-neutral-300 shadow-lg h-booking-cta px-4 flex items-center gap-4">
+                <div className="relative shrink-0">
+                  <ShoppingBag size={24} className="text-primary-500" />
+                  <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 rounded-full bg-danger-500 text-neutral-0 text-[10px] font-bold">3</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-body font-bold text-neutral-800">INR 450</p>
+                  <p className="text-caption text-neutral-500">3 Services &middot; 1hr - 1hr 30 min</p>
+                </div>
+                <Button variant="primary" size="md" className="shrink-0 px-8">Continue</Button>
+              </div>
             </div>
+            <p className="text-caption text-neutral-400 p-3">Static preview. In production, this bar is position: fixed at the bottom of the viewport.</p>
           </Card>
 
           {/* ── Bottom Nav Preview (for reference) ── */}
@@ -586,12 +593,7 @@ export function Component() {
         </main>
       </div>
 
-      <StickyBottomBar
-        totalPrice={450}
-        serviceCount={3}
-        duration="1hr - 1hr 30 min"
-        onCtaClick={() => alert('Continue clicked')}
-      />
+      {/* StickyBottomBar removed from live render — shown as static preview in section above */}
     </ToastProvider>
   );
 }

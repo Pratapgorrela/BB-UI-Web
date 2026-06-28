@@ -1,0 +1,190 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import "tailwindcss";
+
+/* ===================================================================
+   BEAUTY BUS — Design Tokens (Tailwind v4 @theme)
+   Source of truth: instructions/design.md
+   =================================================================== */
+
+@theme {
+  /* ── Primary (Purple) ── */
+  --color-primary-100: #EDE5F9;
+  --color-primary-200: #D4C2F2;
+  --color-primary-300: #B794E8;
+  --color-primary-400: #9560DE;
+  --color-primary-500: #7430D9;
+  --color-primary-600: #5E22B8;
+  --color-primary-700: #491A91;
+  --color-primary-800: #34136A;
+  --color-primary-900: #200D43;
+
+  /* ── Success (Green) ── */
+  --color-success-100: #E5FAE7;
+  --color-success-200: #BFF2C4;
+  --color-success-300: #82E68D;
+  --color-success-400: #4DDA5B;
+  --color-success-500: #28D439;
+  --color-success-600: #1FB32E;
+  --color-success-700: #188C24;
+  --color-success-800: #12661A;
+  --color-success-900: #0C4011;
+
+  /* ── Danger (Red) ── */
+  --color-danger-100: #FAE5E5;
+  --color-danger-200: #F2BFBF;
+  --color-danger-300: #E68282;
+  --color-danger-400: #DA4D4D;
+  --color-danger-500: #D42828;
+  --color-danger-600: #B31F1F;
+  --color-danger-700: #8C1818;
+  --color-danger-800: #661212;
+  --color-danger-900: #400C0C;
+
+  /* ── Info (Blue) ── */
+  --color-info-100: #E5EDFA;
+  --color-info-200: #BFD2F2;
+  --color-info-300: #829FE6;
+  --color-info-400: #4D76DA;
+  --color-info-500: #2963D6;
+  --color-info-600: #1F4FB3;
+  --color-info-700: #183E8C;
+  --color-info-800: #122D66;
+  --color-info-900: #0C1D40;
+
+  /* ── Warning (Yellow/Amber) ── */
+  --color-warning-100: #FBF0E1;
+  --color-warning-200: #F5D9B3;
+  --color-warning-300: #EDB96E;
+  --color-warning-400: #E5A043;
+  --color-warning-500: #DE902A;
+  --color-warning-600: #BC7621;
+  --color-warning-700: #935C1A;
+  --color-warning-800: #6B4313;
+  --color-warning-900: #432A0C;
+
+  /* ── Neutrals (Purple-Tinted) ── */
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-100: #F4F2F6;
+  --color-neutral-200: #E8E4ED;
+  --color-neutral-300: #D1CBD9;
+  --color-neutral-400: #A89DB5;
+  --color-neutral-500: #7F7290;
+  --color-neutral-600: #5C5169;
+  --color-neutral-700: #3D3548;
+  --color-neutral-800: #261F30;
+  --color-neutral-900: #120D1A;
+
+  /* ── Font Families ── */
+  --font-heading: "Poppins", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* ── Font Sizes (Type Scale) ── */
+  --text-display: 48px;
+  --text-h1: 32px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-h4: 18px;
+  --text-body-lg: 18px;
+  --text-body: 16px;
+  --text-body-sm: 14px;
+  --text-caption: 12px;
+  --text-mono: 14px;
+
+  /* ── Line Heights ── */
+  --leading-display: 1.1;
+  --leading-h1: 1.2;
+  --leading-h2: 1.3;
+  --leading-h3: 1.4;
+  --leading-h4: 1.4;
+  --leading-body-lg: 1.6;
+  --leading-body: 1.6;
+  --leading-body-sm: 1.5;
+  --leading-caption: 1.4;
+
+  /* ── Border Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(18, 13, 26, 0.06);
+  --shadow-md: 0 4px 8px rgba(18, 13, 26, 0.08);
+  --shadow-lg: 0 8px 24px rgba(18, 13, 26, 0.12);
+  --shadow-xl: 0 16px 48px rgba(18, 13, 26, 0.16);
+  --shadow-focus: 0 0 0 3px rgba(116, 48, 217, 0.3);
+  --shadow-focus-error: 0 0 0 3px rgba(212, 40, 40, 0.3);
+
+  /* ── Z-Index ── */
+  --z-base: 0;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+
+  /* ── Motion / Transitions ── */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-spring: 500ms;
+  --ease-fast: ease-out;
+  --ease-normal: ease-in-out;
+  --ease-slow: ease-in-out;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Layout ── */
+  --width-max: 1200px;
+  --height-bottom-nav: 64px;
+  --height-top-nav: 64px;
+  --height-booking-cta: 72px;
+  --size-touch-target: 44px;
+}
+
+/* ── Semantic Surface Tokens ── */
+:root {
+  --bg-app: var(--color-neutral-100);
+  --bg-surface: var(--color-neutral-0);
+  --bg-surface-raised: var(--color-neutral-0);
+  --bg-surface-overlay: var(--color-neutral-0);
+  --bg-muted: var(--color-neutral-200);
+  --fg-primary: var(--color-neutral-800);
+  --fg-default: var(--color-neutral-700);
+  --fg-secondary: var(--color-neutral-500);
+  --fg-placeholder: var(--color-neutral-400);
+  --fg-inverse: var(--color-neutral-0);
+  --fg-link: var(--color-primary-600);
+  --fg-error: var(--color-danger-600);
+  --fg-success: var(--color-success-600);
+  --border-default: var(--color-neutral-300);
+  --border-focus: var(--color-primary-500);
+  --border-error: var(--color-danger-500);
+  --border-success: var(--color-success-500);
+}
+
+/* ── Base Styles ── */
+html {
+  font-family: var(--font-body);
+  color: var(--fg-default);
+  background-color: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

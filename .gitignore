@@ -29,3 +29,7 @@ yarn-error.log*
 
 # Vitest
 coverage
+
+# Claude temp files
+.claude-context-summary.md
+.claude-heartbeat-save.md

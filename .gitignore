@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+dist-ssr
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Vitest
+coverage
+
+# Claude temp files
+.claude-context-summary.md
+.claude-heartbeat-save.md

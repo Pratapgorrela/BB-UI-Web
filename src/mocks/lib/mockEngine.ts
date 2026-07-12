@@ -1,6 +1,6 @@
 import { AxiosError, AxiosHeaders } from 'axios';
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import type { ApiErrorCode, ApiErrorDetail } from '../../types/api';
+import type { ApiErrorCode, ApiErrorDetail, Pagination } from '../../types/api';
 
 interface MockRequest {
   method: string;
@@ -67,6 +67,25 @@ function matchRoute(
 
 function ok<T>(data: T, status = 200): MockResult {
   return { status, body: { success: true, data, error: null } };
+}
+
+/** Paginated-list envelope. `page`/`limit` are the already-validated request values. */
+function paginated<T>(items: T[], page: number, limit: number): MockResult {
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const pagination: Pagination = {
+    page,
+    limit,
+    totalItems,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
+  };
+  const start = (page - 1) * limit;
+  return {
+    status: 200,
+    body: { success: true, data: items.slice(start, start + limit), pagination, error: null },
+  };
 }
 
 function fail(
@@ -162,5 +181,5 @@ const mockAdapter: AxiosAdapter = async (
   return response;
 };
 
-export { fail, MockError, mockAdapter, ok, registerMock };
+export { fail, MockError, mockAdapter, ok, paginated, registerMock };
 export type { MockHandlerFn, MockRequest, MockResult };

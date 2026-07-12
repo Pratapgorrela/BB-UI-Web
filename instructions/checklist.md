@@ -30,7 +30,7 @@
 | Section | Status | Locked Date | Consuming Features |
 |---|---|---|---|
 | Auth | `LOCKED` | 2026-07-12 | F6 |
-| Service Catalog | `DRAFT` | — | F3, F4, F5 |
+| Service Catalog | `LOCKED` | 2026-07-13 | F3, F4, F5 |
 | Availability & Booking | `DRAFT` | — | F7, F8 |
 | Profile & Addresses | `DRAFT` | — | F9 |
 | Reviews | `DRAFT` | — | F10 |

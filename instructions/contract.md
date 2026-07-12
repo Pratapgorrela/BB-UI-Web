@@ -123,10 +123,11 @@
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | |
-| name | string | e.g., "Hair", "Nails", "Spa", "Makeup" |
+| name | string | The 6 categories per Figma: "Men", "Women", "Kids", "Seniors", "Bride", "Groom" |
 | slug | string | URL-safe, unique |
 | description | string | |
-| imageUrl | string | Category thumbnail |
+| imageUrl | string | Category thumbnail (person image on gradient grid card) |
+| heroImageUrl | string | Wide hero image for the category detail page |
 | serviceCount | integer | Number of services in category |
 | sortOrder | integer | Display order |
 
@@ -136,12 +137,16 @@
 |---|---|---|
 | id | UUID | |
 | categoryId | UUID | FK → ServiceCategory |
+| type | enum | `COMBO` \| `SINGLE` — combos are bundled services (per Figma) |
 | name | string | |
 | description | string | |
 | shortDescription | string | max 120 chars for cards |
 | imageUrl | string | Primary image |
 | galleryUrls | string[] | Additional images |
-| price | Money | `{ amount, currency }` |
+| price | Money | `{ amount, currency }` — effective (discounted) price, currency `INR` |
+| originalPrice | Money \| null | Pre-discount price (strikethrough in UI); `null` when no discount |
+| discountPercent | integer \| null | e.g., `20` renders the "20% OFF" badge; `null` when no discount |
+| includedServiceIds | UUID[] | For `COMBO`: the bundled SINGLE service IDs; empty for `SINGLE` |
 | duration | integer | Minutes |
 | isPopular | boolean | Featured flag |
 | rating | number | 0.0–5.0, one decimal |
@@ -301,7 +306,7 @@
 
 ---
 
-### Service Catalog — `STATUS: DRAFT`
+### Service Catalog — `STATUS: LOCKED (2026-07-13)`
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
@@ -313,6 +318,7 @@
 
 **GET `/api/v1/services`** — Query params:
 - `categoryId` (UUID) — filter by category
+- `type` (`COMBO` | `SINGLE`) — filter by service type
 - `search` (string) — full-text search on name/description
 - `isPopular` (boolean) — filter popular services
 - `minPrice` / `maxPrice` (integer, minor units) — price range
@@ -421,6 +427,7 @@
 |---|---|---|---|
 | 2026-06-11 | All | Initial draft — all sections DRAFT | Setup |
 | 2026-07-12 | Auth | Section locked for F6 implementation — endpoints and shapes unchanged from draft | Claude |
+| 2026-07-13 | Service Catalog | Draft amended to match Figma (source of truth): 6 categories (Men/Women/Kids/Seniors/Bride/Groom), `heroImageUrl` on ServiceCategory; `type` (COMBO/SINGLE), `originalPrice`, `discountPercent`, `includedServiceIds` on Service; `type` query param on GET /services; currency INR. Section locked for F4 implementation | Claude |
 
 ---
 

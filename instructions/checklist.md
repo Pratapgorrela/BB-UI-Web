@@ -126,13 +126,15 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 25 | Build AppShell layout component (wraps pages, handles nav switching) | `[ ]` |
-| 26 | Build BottomNav component (mobile, 64px, 5 items: Home, Services, Bookings, Alerts, Profile — per Figma) | `[ ]` |
-| 27 | Build TopNav/Header component (desktop, 64px, logo, nav links, auth actions) | `[ ]` |
-| 28 | Implement responsive nav switching at 768px breakpoint | `[ ]` |
-| 29 | Build Container component (max-width 1200px, responsive padding) | `[ ]` |
-| 30 | Build PageHeader component (← back arrow + title — per Figma pattern) | `[ ]` |
-| 31 | Integrate shell with router — all pages wrapped in AppShell | `[ ]` |
+| 25 | Build AppShell layout component (wraps pages, handles nav switching) | `[x]` |
+| 26 | Build BottomNav component (mobile, 64px, 5 items: Home, Services, Bookings, Alerts, Profile — per Figma) | `[x]` |
+| 27 | Build TopNav/Header component (desktop, 64px, logo, nav links, auth actions) | `[x]` |
+| 28 | Implement responsive nav switching at 768px breakpoint | `[x]` |
+| 29 | Build Container component (max-width 1200px, responsive padding) | `[x]` |
+| 30 | Build PageHeader component (← back arrow + title — per Figma pattern) | `[x]` |
+| 31 | Integrate shell with router — all pages wrapped in AppShell | `[x]` |
+
+> **F2 complete (2026-07-12).** Verified at 375/768/1024/1440px with 30 automated browser checks — responsive nav switch at 768px, active-tab highlighting on nested routes, a11y (aria-current, focus rings, 44px targets), zero console errors. Auth pages render without nav via route `handle: { hideNav }`; `/dev/components` opts out via `fullBleed`. Also fixed a latent Tailwind v4 token bug (`z-sticky` was a no-op; project z tokens are `--z-*`, so utilities must use `z-(--z-sticky)`).
 
 ---
 
@@ -389,7 +391,7 @@
 |---|---|---|---|
 | F0 — Scaffold | 10 | 10 | `[x]` Complete |
 | F1 — Design System | 15 | 15 | `[x]` Complete |
-| F2 — App Shell | 7 | 0 | `[ ]` Not started |
+| F2 — App Shell | 7 | 7 | `[x]` Complete |
 | F3 — Home | 11 | 0 | `[ ]` Not started |
 | F4 — Catalog | 11 | 0 | `[ ]` Not started |
 | F5 — Details | 7 | 0 | `[ ]` Not started |
@@ -405,7 +407,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **25** | **16%** |
+| **TOTAL** | **161** | **32** | **20%** |
 
 ---
 

@@ -60,7 +60,7 @@ function ToastContainer({
 
   return (
     <div
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-toast flex flex-col gap-2 w-full max-w-[400px] px-4"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-(--z-toast) flex flex-col gap-2 w-full max-w-100 px-4"
       aria-live="polite"
       aria-atomic="false"
     >

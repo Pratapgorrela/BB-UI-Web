@@ -1,7 +1,9 @@
+import { PageHeader } from '../components/layout';
+
 export function Component() {
   return (
-    <div className="p-4">
-      <h1 className="font-heading text-h1 font-bold text-neutral-800">Booking details</h1>
+    <div className="py-2">
+      <PageHeader title="Booking details" />
       <p className="text-body text-neutral-600">Booking information will appear here.</p>
     </div>
   );

@@ -268,7 +268,7 @@
 
 ## Endpoint Index
 
-### Auth — `STATUS: DRAFT`
+### Auth — `STATUS: LOCKED (2026-07-12)`
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
@@ -420,6 +420,7 @@
 | Date | Section | Change | Author |
 |---|---|---|---|
 | 2026-06-11 | All | Initial draft — all sections DRAFT | Setup |
+| 2026-07-12 | Auth | Section locked for F6 implementation — endpoints and shapes unchanged from draft | Claude |
 
 ---
 

@@ -21,7 +21,7 @@
 | Input | Description | Status | Notes |
 |---|---|---|---|
 | Mobile flow designs | Designer's completed mobile flow designs — visual source of truth for UI | **Received** | Figma file shared 2026-06-28. File: Focus-Cube (AoZfqfioGoGq7LpMKghUOq), Page-3 node 184:5. 40+ screens analyzed. |
-| Login/Signup designs | Login & registration screen designs — not present in Figma file | **Waiting** | Will design based on brand guidelines. |
+| Login/Signup designs | Login & registration screen designs — not present in Figma file | **Resolved** | Designed in-app from brand guidelines (F6, 2026-07-12). Replace later if designer provides screens. |
 
 ---
 
@@ -29,7 +29,7 @@
 
 | Section | Status | Locked Date | Consuming Features |
 |---|---|---|---|
-| Auth | `DRAFT` | — | F6 |
+| Auth | `LOCKED` | 2026-07-12 | F6 |
 | Service Catalog | `DRAFT` | — | F3, F4, F5 |
 | Availability & Booking | `DRAFT` | — | F7, F8 |
 | Profile & Addresses | `DRAFT` | — | F9 |
@@ -126,13 +126,15 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 25 | Build AppShell layout component (wraps pages, handles nav switching) | `[ ]` |
-| 26 | Build BottomNav component (mobile, 64px, 5 items: Home, Services, Bookings, Alerts, Profile — per Figma) | `[ ]` |
-| 27 | Build TopNav/Header component (desktop, 64px, logo, nav links, auth actions) | `[ ]` |
-| 28 | Implement responsive nav switching at 768px breakpoint | `[ ]` |
-| 29 | Build Container component (max-width 1200px, responsive padding) | `[ ]` |
-| 30 | Build PageHeader component (← back arrow + title — per Figma pattern) | `[ ]` |
-| 31 | Integrate shell with router — all pages wrapped in AppShell | `[ ]` |
+| 25 | Build AppShell layout component (wraps pages, handles nav switching) | `[x]` |
+| 26 | Build BottomNav component (mobile, 64px, 5 items: Home, Services, Bookings, Alerts, Profile — per Figma) | `[x]` |
+| 27 | Build TopNav/Header component (desktop, 64px, logo, nav links, auth actions) | `[x]` |
+| 28 | Implement responsive nav switching at 768px breakpoint | `[x]` |
+| 29 | Build Container component (max-width 1200px, responsive padding) | `[x]` |
+| 30 | Build PageHeader component (← back arrow + title — per Figma pattern) | `[x]` |
+| 31 | Integrate shell with router — all pages wrapped in AppShell | `[x]` |
+
+> **F2 complete (2026-07-12).** Verified at 375/768/1024/1440px with 30 automated browser checks — responsive nav switch at 768px, active-tab highlighting on nested routes, a11y (aria-current, focus rings, 44px targets), zero console errors. Auth pages render without nav via route `handle: { hideNav }`; `/dev/components` opts out via `fullBleed`. Also fixed a latent Tailwind v4 token bug (`z-sticky` was a no-op; project z tokens are `--z-*`, so utilities must use `z-(--z-sticky)`).
 
 ---
 
@@ -192,17 +194,19 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 61 | Lock Auth contract section | `[ ]` |
-| 62 | Intel Report for F6 — wait for approval | `[ ]` |
-| 63 | Create User type, auth request/response types + Zod schemas | `[ ]` |
-| 64 | Create mock data (test users) + mock handlers (register, login, refresh, logout, me) | `[ ]` |
-| 65 | Create auth API layer functions | `[ ]` |
-| 66 | Create useAuthStore (Zustand — token, user, isAuthenticated, login/logout actions) | `[ ]` |
-| 67 | Inject auth header into apiClient from store | `[ ]` |
-| 68 | Build LoginPage with form (RHF + Zod — phone/email + password) | `[ ]` |
-| 69 | Build RegisterPage with form (RHF + Zod — name, email, phone, password) | `[ ]` |
-| 70 | Build ProtectedRoute wrapper component | `[ ]` |
-| 71 | Wire auth pages into router, test full flow in mock mode | `[ ]` |
+| 61 | Lock Auth contract section | `[x]` |
+| 62 | Intel Report for F6 — wait for approval | `[x]` |
+| 63 | Create User type, auth request/response types + Zod schemas | `[x]` |
+| 64 | Create mock data (test users) + mock handlers (register, login, refresh, logout, me) | `[x]` |
+| 65 | Create auth API layer functions | `[x]` |
+| 66 | Create useAuthStore (Zustand — token, user, isAuthenticated, login/logout actions) | `[x]` |
+| 67 | Inject auth header into apiClient from store | `[x]` |
+| 68 | Build LoginPage with form (RHF + Zod — email + password, per locked contract) | `[x]` |
+| 69 | Build RegisterPage with form (RHF + Zod — name, email, phone, password) | `[x]` |
+| 70 | Build ProtectedRoute wrapper component | `[x]` |
+| 71 | Wire auth pages into router, test full flow in mock mode | `[x]` |
+
+> **F6 complete (2026-07-12).** Email+password auth per locked contract (login is email-only — contract is canonical over the earlier "phone/email" step wording). Built the real mock engine this feature: custom axios adapter in `src/mocks/lib/mockEngine.ts` (no MSW — Rule 10), 300–600ms latency, envelope-exact responses, localStorage-persisted sessions with refresh-token rotation. apiClient now injects Bearer tokens and does single-flight refresh-on-401 with retry. Seeded logins: priya@example.com / Priya@123, rahul@example.com / Rahul@123; error@test.com forces a 500 on register. ProtectedRoute guards /bookings, /book, /profile, /notifications with returnTo. TopNav is auth-aware. ProfilePage is a minimal F6 test surface (avatar + user + logout via /auth/me) — F9 rebuilds it fully. Verified: 20 automated browser checks (bad creds 401, duplicate 409, forced 500, returnTo, token refresh rotation, logout, mobile 375px), zero console errors. Also fixed latent `z-toast` no-op in Toast.tsx and mounted ToastProvider app-wide.
 
 ---
 
@@ -389,11 +393,11 @@
 |---|---|---|---|
 | F0 — Scaffold | 10 | 10 | `[x]` Complete |
 | F1 — Design System | 15 | 15 | `[x]` Complete |
-| F2 — App Shell | 7 | 0 | `[ ]` Not started |
+| F2 — App Shell | 7 | 7 | `[x]` Complete |
 | F3 — Home | 11 | 0 | `[ ]` Not started |
 | F4 — Catalog | 11 | 0 | `[ ]` Not started |
 | F5 — Details | 7 | 0 | `[ ]` Not started |
-| F6 — Auth | 11 | 0 | `[ ]` Not started |
+| F6 — Auth | 11 | 11 | `[x]` Complete |
 | F7 — Booking | 15 | 0 | `[ ]` Not started |
 | F8 — My Bookings | 10 | 0 | `[ ]` Not started |
 | F9 — Profile | 8 | 0 | `[ ]` Not started |
@@ -405,7 +409,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **25** | **16%** |
+| **TOTAL** | **161** | **43** | **27%** |
 
 ---
 

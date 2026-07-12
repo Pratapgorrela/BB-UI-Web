@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import {
   Palette, Type, Ruler, Square, Layers, Zap, MousePointerClick, FormInput,
   CreditCard, Tag, User, ToggleRight, ChevronDown, Loader, PanelTop, Bell,
-  Database, PanelBottom, Search, Mail, Eye, ArrowRight, Plus,
-  Home, ShoppingBag, Calendar, BellRing, UserCircle,
+  Database, PanelBottom, Search, Mail, Eye, ArrowRight, Plus, ShoppingBag,
 } from 'lucide-react';
 import {
   Button, TextInput, Select, Textarea, Card, Badge, DiscountBadge,
   Skeleton, SkeletonText, SkeletonCard, Avatar, Modal, ToastProvider,
   Toggle, Accordion, DataState,
 } from '../components/ui';
+import { PageHeader, NAV_ITEMS } from '../components/layout';
 import { ToastDemo } from './dev/ToastDemo';
 import {
   colorGroups, semanticTokens, typeScale, spacingScale,
@@ -572,24 +572,41 @@ export function Component() {
             <p className="text-caption text-neutral-400 p-3">Static preview. In production, this bar is position: fixed at the bottom of the viewport.</p>
           </Card>
 
-          {/* ── Bottom Nav Preview (for reference) ── */}
-          <div className="mt-12 pb-8">
-            <p className="text-caption font-semibold text-neutral-500 mb-3">Bottom Navigation Preview (F2)</p>
-            <div className="bg-neutral-0 rounded-xl border border-neutral-300 px-4 py-3 flex items-center justify-around max-w-sm">
-              {[
-                { icon: <Home size={24} />, label: 'Home', active: true },
-                { icon: <ShoppingBag size={24} />, label: 'Services', active: false },
-                { icon: <Calendar size={24} />, label: 'Bookings', active: false },
-                { icon: <BellRing size={24} />, label: 'Alerts', active: false },
-                { icon: <UserCircle size={24} />, label: 'Profile', active: false },
-              ].map((item) => (
-                <div key={item.label} className={`flex flex-col items-center gap-0.5 ${item.active ? 'text-primary-500' : 'text-neutral-500'}`}>
-                  {item.icon}
-                  <span className="text-[10px] font-medium">{item.label}</span>
-                </div>
-              ))}
+          {/* ════════════════════ LAYOUT ════════════════════ */}
+          <SectionHeader id="layout" label="Layout" description="F2 app shell primitives. TopNav and BottomNav render live in the shell around app pages; PageHeader is used on detail pages." />
+
+          <SubSection title="PageHeader">
+            <Card variant="raised" padding="md">
+              <PageHeader title="Service details" onBack={() => {}} />
+              <PageHeader
+                title="A very long page title that truncates when it runs out of horizontal space"
+                onBack={() => {}}
+                actions={<Button size="sm" variant="ghost">Action</Button>}
+              />
+              <PageHeader title="Without back button" showBack={false} />
+            </Card>
+          </SubSection>
+
+          <SubSection title="Bottom Navigation (mobile, below 768px)">
+            <div className="max-w-sm rounded-xl border border-neutral-300 bg-neutral-0 overflow-hidden">
+              <div className="flex h-bottom-nav">
+                {NAV_ITEMS.map((item, index) => (
+                  <div
+                    key={item.to}
+                    className={`flex flex-1 flex-col items-center justify-center gap-0.5 ${index === 0 ? 'text-primary-500' : 'text-neutral-500'}`}
+                  >
+                    <item.icon size={24} aria-hidden="true" fill={index === 0 ? 'currentColor' : 'none'} />
+                    <span className="text-caption font-medium">{item.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+            <p className="text-caption text-neutral-400 mt-2 pb-8">
+              Static preview. The live BottomNav is fixed to the viewport bottom on mobile app pages.
+              The live TopNav appears at 768px and up with logo, primary links, and auth actions.
+              This dev page opts out of the shell, so neither renders here.
+            </p>
+          </SubSection>
         </main>
       </div>
 

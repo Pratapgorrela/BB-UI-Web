@@ -27,7 +27,7 @@ function StickyBottomBar({
   return (
     <div
       className={[
-        'fixed bottom-0 left-0 right-0 z-sticky',
+        'fixed bottom-0 left-0 right-0 z-(--z-sticky)',
         'bg-neutral-0 border-t border-neutral-300 shadow-lg',
         'h-booking-cta px-4',
         'flex items-center gap-4',

@@ -189,4 +189,5 @@ export const sidebarSections = [
   { id: 'toasts', label: 'Toasts', icon: 'Bell' },
   { id: 'datastate', label: 'Data States', icon: 'Database' },
   { id: 'stickybar', label: 'Sticky Bar', icon: 'PanelBottom' },
+  { id: 'layout', label: 'Layout', icon: 'PanelTop' },
 ];

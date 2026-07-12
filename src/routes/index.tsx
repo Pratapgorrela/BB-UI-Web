@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AppShell, type AppRouteHandle } from '../components/layout';
+import { ProtectedRoute } from './ProtectedRoute';
 
 const router = createBrowserRouter([
   {
@@ -29,24 +30,29 @@ const router = createBrowserRouter([
         handle: { hideNav: true } satisfies AppRouteHandle,
       },
       {
-        path: '/bookings',
-        lazy: () => import('../pages/MyBookingsPage'),
-      },
-      {
-        path: '/bookings/:id',
-        lazy: () => import('../pages/BookingDetailPage'),
-      },
-      {
-        path: '/book',
-        lazy: () => import('../pages/BookingFlowPage'),
-      },
-      {
-        path: '/profile',
-        lazy: () => import('../pages/ProfilePage'),
-      },
-      {
-        path: '/notifications',
-        lazy: () => import('../pages/NotificationsPage'),
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: '/bookings',
+            lazy: () => import('../pages/MyBookingsPage'),
+          },
+          {
+            path: '/bookings/:id',
+            lazy: () => import('../pages/BookingDetailPage'),
+          },
+          {
+            path: '/book',
+            lazy: () => import('../pages/BookingFlowPage'),
+          },
+          {
+            path: '/profile',
+            lazy: () => import('../pages/ProfilePage'),
+          },
+          {
+            path: '/notifications',
+            lazy: () => import('../pages/NotificationsPage'),
+          },
+        ],
       },
       {
         path: '/dev/components',

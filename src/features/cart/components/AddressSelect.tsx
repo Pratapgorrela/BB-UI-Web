@@ -1,13 +1,19 @@
 import { MapPin } from 'lucide-react';
-import type { CheckoutAddress } from '../data/checkoutAddresses';
+
+/** Minimal display shape — the page maps its real Address records to this. */
+interface AddressOption {
+  id: string;
+  label: string;
+  line: string;
+}
 
 interface AddressSelectProps {
-  addresses: CheckoutAddress[];
+  addresses: AddressOption[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
 
-/** Radio-select over saved addresses. Interim data until F9 (Profile & Addresses). */
+/** Radio-select over the user's saved addresses (F9 real data via useFetchAddresses). */
 function AddressSelect({ addresses, selectedId, onSelect }: AddressSelectProps) {
   return (
     <section aria-labelledby="address-heading" className="flex flex-col gap-3">
@@ -56,4 +62,4 @@ function AddressSelect({ addresses, selectedId, onSelect }: AddressSelectProps) 
 }
 
 export { AddressSelect };
-export type { AddressSelectProps };
+export type { AddressOption, AddressSelectProps };

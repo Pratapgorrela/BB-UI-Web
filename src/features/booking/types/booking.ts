@@ -64,9 +64,9 @@ interface CreateBookingRequest extends CheckoutSummaryRequest {
 }
 
 /**
- * Interim address shape expanded on `GET /bookings/:id` — structurally matches
- * the checkout's `CheckoutAddress`. F9 (Profile & Addresses) owns the real
- * `Address` entity; when it lands, only the data source changes, not this shape.
+ * Compact address shape expanded on `GET /bookings/:id`. Since F9, the mock
+ * derives it from the real `Address` entity (via `addressToLine`); this display
+ * shape is intentionally decoupled from the full entity.
  */
 interface BookingAddress {
   id: string;

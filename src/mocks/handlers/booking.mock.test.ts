@@ -11,7 +11,7 @@ import {
   timeSlotSchema,
 } from '../../features/booking/types/booking.schema';
 import { seedBookings } from '../data/bookings.data';
-import { checkoutAddresses } from '../../features/cart/data/checkoutAddresses';
+import { seedAddresses } from '../data/addresses.data';
 import type {
   Booking,
   BookingDetail,
@@ -386,7 +386,7 @@ describe('seed bookings integrity', () => {
       expect(priyaSeed(status)).toBeDefined();
     }
     const specialistIds = new Set(seedSpecialists.map((candidate) => candidate.id));
-    const addressIds = new Set(checkoutAddresses.map((candidate) => candidate.id));
+    const addressIds = new Set(seedAddresses.map((candidate) => candidate.id));
     for (const booking of seedBookings) {
       expect(specialistIds.has(booking.specialistId)).toBe(true);
       expect(addressIds.has(booking.addressId)).toBe(true);

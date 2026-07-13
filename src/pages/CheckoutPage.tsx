@@ -8,11 +8,11 @@ import {
   CheckoutItemsList,
   CouponSection,
   PaymentSummaryCard,
-  checkoutAddresses,
   useCheckoutSummary,
   useFetchCoupons,
 } from '../features/cart';
 import type { Coupon } from '../features/cart';
+import { addressToLine, useFetchAddresses } from '../features/profile';
 import {
   SelectedSlotCard,
   SlotPickerSheet,
@@ -34,9 +34,13 @@ export function Component() {
   const selected = selectedCartItems(items);
 
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
-  const [addressId, setAddressId] = useState<string>(checkoutAddresses[0]?.id ?? '');
+  const [addressId, setAddressId] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  const addressesQuery = useFetchAddresses();
+  // Addresses come back default-first; fall back to that until the user picks one.
+  const selectedAddressId = addressId || addressesQuery.data?.[0]?.id || '';
 
   const lineInputs = selected.map((item) => ({
     serviceId: item.serviceId,
@@ -53,8 +57,8 @@ export function Component() {
   const couponError = couponRejected ? getApiErrorMessage(summaryQuery.error) : undefined;
 
   const handlePlaceBooking = async () => {
-    if (!addressId) {
-      addToast('Please select a service address.', 'error');
+    if (!selectedAddressId) {
+      addToast('Please add a service address to continue.', 'error');
       return;
     }
     if (!selectedSlot) {
@@ -66,7 +70,7 @@ export function Component() {
       const booking = await createBooking.mutateAsync({
         items: lineInputs,
         couponCode: appliedCode,
-        addressId,
+        addressId: selectedAddressId,
         timeSlotId: selectedSlot.id,
       });
       navigate('/booking-confirmation', { state: { booking }, replace: true });
@@ -149,11 +153,31 @@ export function Component() {
             <PaymentSummaryCard summary={summary} isLoading={summaryQuery.isLoading} />
 
             {/* Address */}
-            <AddressSelect
-              addresses={checkoutAddresses}
-              selectedId={addressId}
-              onSelect={setAddressId}
-            />
+            <DataState
+              data={addressesQuery.data}
+              isLoading={addressesQuery.isLoading}
+              error={addressesQuery.error}
+              onRetry={() => void addressesQuery.refetch()}
+              isEmpty={(list) => list.length === 0}
+              emptyMessage="No saved addresses yet"
+              emptyCta={{
+                label: 'Add an address',
+                onClick: () => void navigate('/profile/addresses'),
+              }}
+              skeleton={<div className="h-24 animate-pulse rounded-lg bg-neutral-200" />}
+            >
+              {(list) => (
+                <AddressSelect
+                  addresses={list.map((address) => ({
+                    id: address.id,
+                    label: address.label,
+                    line: addressToLine(address),
+                  }))}
+                  selectedId={selectedAddressId}
+                  onSelect={setAddressId}
+                />
+              )}
+            </DataState>
 
             {/* Scheduling */}
             <SelectedSlotCard

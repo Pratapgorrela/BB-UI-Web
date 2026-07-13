@@ -37,6 +37,11 @@ function persistRegisteredUsers(): void {
   writeStorage(REGISTERED_USERS_KEY, users.slice(seedUsers.length));
 }
 
+/** Base user record by id (pre profile-override). Exported for profile.mock. */
+function findUserById(id: string): User | undefined {
+  return users.find((record) => record.user.id === id)?.user;
+}
+
 /** refreshToken → userId */
 type SessionMap = Record<string, string>;
 
@@ -163,3 +168,5 @@ registerMock('GET', '/auth/me', (req) => {
   const user = requireAuth(req, path);
   return ok(user);
 });
+
+export { findUserById };

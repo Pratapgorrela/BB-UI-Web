@@ -3,7 +3,8 @@ import { requireAuth } from '../lib/guards';
 import { seedBookings } from '../data/bookings.data';
 import { seedServices } from '../data/services.data';
 import { seedSpecialists } from '../data/specialists.data';
-import { checkoutAddresses } from '../../features/cart/data/checkoutAddresses';
+import { findAddressRecord } from './profile.mock';
+import { addressToLine } from '../../features/profile/utils/addressToLine';
 import { makeReferenceCode, priceCart, toValidationDetails } from './cart.mock';
 import {
   bookingsListQuerySchema,
@@ -345,9 +346,10 @@ registerMock('GET', '/bookings/:id', (req) => {
   if (!specialist) {
     return fail(500, 'INTERNAL_ERROR', 'Assigned specialist record is missing.', path);
   }
-  const address: BookingAddress = checkoutAddresses.find(
-    (candidate) => candidate.id === booking.addressId,
-  ) ?? { id: booking.addressId, label: 'Saved address', line: 'Address on file' };
+  const record = findAddressRecord(booking.addressId);
+  const address: BookingAddress = record
+    ? { id: record.id, label: record.label, line: addressToLine(record) }
+    : { id: booking.addressId, label: 'Saved address', line: 'Address on file' };
 
   const detail: BookingDetail = { ...booking, specialist, address };
   return ok(detail);
@@ -384,6 +386,7 @@ registerMock('PATCH', '/bookings/:id/cancel', (req) => {
 });
 
 /* ── PATCH /bookings/:id/reschedule ── */
+/* (allBookings is exported at the end of this module.) */
 
 registerMock('PATCH', '/bookings/:id/reschedule', (req) => {
   const path = `/api/v1/bookings/${req.params.id}/reschedule`;
@@ -435,3 +438,9 @@ registerMock('PATCH', '/bookings/:id/reschedule', (req) => {
   upsertBooking(updated);
   return ok(updated);
 });
+
+/**
+ * The full booking universe (seeds ∪ localStorage). Exported so profile.mock can
+ * enforce the delete-blocked-by-upcoming-booking rule on DELETE /addresses/:id.
+ */
+export { allBookings };

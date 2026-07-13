@@ -31,6 +31,7 @@
 |---|---|---|---|
 | Auth | `LOCKED` | 2026-07-12 | F6 |
 | Service Catalog | `LOCKED` | 2026-07-13 | F3, F4, F5 |
+| Home & Promotions | `LOCKED` | 2026-07-13 | F3 |
 | Availability & Booking | `DRAFT` | — | F7, F8 |
 | Profile & Addresses | `DRAFT` | — | F9 |
 | Reviews | `DRAFT` | — | F10 |
@@ -142,17 +143,19 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 32 | Lock Service Catalog contract section (if not already locked for F4) | `[ ]` |
-| 33 | Intel Report for F3 — wait for approval | `[ ]` |
-| 34 | Build greeting header section ("Hello" + address selector + cart icon with badge — per Figma) | `[ ]` |
-| 35 | Build search bar component (navigates to search page) | `[ ]` |
-| 36 | Build category grid section (Men, Women, Kids, Seniors, Bride, Groom — 2-col grid with purple gradient cards + images — per Figma) | `[ ]` |
-| 37 | Build "Popular Combos" section (horizontal scroll cards — per Figma) | `[ ]` |
-| 38 | Build "Offers for You" section (promo cards carousel — per Figma) | `[ ]` |
-| 39 | Build testimonials section ("What Our Customers Say" — review cards with avatar, stars, quote — per Figma) | `[ ]` |
-| 40 | Build referral section ("Share the Beauty, Get Rewarded" — CTA card — per Figma) | `[ ]` |
-| 41 | Build floating Support button (green FAB — per Figma) | `[ ]` |
-| 42 | Compose HomePage with all sections, 4 data states, responsive layout | `[ ]` |
+| 32 | Lock Service Catalog contract section (if not already locked for F4) | `[x]` |
+| 33 | Intel Report for F3 — wait for approval | `[x]` |
+| 34 | Build greeting header section ("Hello" + address selector + cart icon with badge — per Figma) | `[x]` |
+| 35 | Build search bar component (navigates to search page) | `[x]` |
+| 36 | Build category grid section (Men, Women, Kids, Seniors, Bride, Groom — 2-col grid with purple gradient cards + images — per Figma) | `[x]` |
+| 37 | Build "Popular Combos" section (horizontal scroll cards — per Figma) | `[x]` |
+| 38 | Build "Offers for You" section (promo cards carousel — per Figma) | `[x]` |
+| 39 | Build testimonials section ("What Our Customers Say" — review cards with avatar, stars, quote — per Figma) | `[x]` |
+| 40 | Build referral section ("Share the Beauty, Get Rewarded" — CTA card — per Figma) | `[x]` |
+| 41 | Build floating Support button (green FAB — per Figma) | `[x]` |
+| 42 | Compose HomePage with all sections, 4 data states, responsive layout | `[x]` |
+
+> **F3 complete (2026-07-13).** Built the Home screen Figma-exact from the user's reference. **New LOCKED "Home & Promotions" contract section** added (Rule 1): `Offer`, `Testimonial`, `Referral` entities + guest endpoints `GET /offers`, `/testimonials`, `/referral` — the three editorial sections had no prior contract/mock. `Testimonial` is deliberately distinct from the per-service `Review` (F10). New `src/features/home/` feature (types → Zod → api → hooks → components) with `src/mocks/{data,handlers}` for the three endpoints (`?scenario=error|empty` triggers mirror the catalog `FORCE_500` convention). **Reused** `CategoryCard`, `ServiceCard`, `useFetchCategories`/`useFetchServices`, `DataState`, `Avatar`, `Card`, `Button`, `formatPrice`, toasts. Sections: greeting header (mobile-only, `md:hidden` — TopNav covers desktop), search bar → `/services` (interim "CTA to catalog"; **F14 repoints to `/search`**), 6-category grid (reused CategoryCard), Popular Combos (`type=COMBO&isPopular=true`, horizontal ServiceCard row), Offers carousel (DARK/PRIMARY themes), testimonials (scroll-snap carousel + dot nav, no new pkg — Rule 10), referral CTA (₹100/₹100 from data). Small backward-compatible reuse tweak: added optional `onOpen` to `ServiceCard` (mirrors `ServiceListItem`) so combo cards tap through to detail while `+` stays separate. **Decisions:** Support FAB is **purple** per the Figma reference — *deviates from design.md line 14 (green FAB)*; cart badge is **hidden at count 0** (no cart until F13); the van "Arriving in 10 min" card is **deferred to F15 Track Van** (no tracking data/contract yet). Cart/search/support taps use the established "coming soon" toast/navigate stubs. Verified: typecheck + `vite build` clean; **30/30 Vitest** (20 existing + 10 new promotions: offers/testimonials/referral happy + `scenario=error`→500 + `scenario=empty`→empty + seed↔schema integrity); **32/32 browser checks** (scratchpad Playwright) covering all 8 sections in Figma order, category→`/categories/:slug` + combo→`/services/:id` navigation, search/cart/support stubs, purple FAB, hidden-at-0 cart badge, loading skeletons, mobile header shown@375 / hidden@768+, zero horizontal overflow @375/768/1024/1440, zero console errors. **Caveat:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config never created; blocked on `typescript-eslint` package approval per Rule 10). Imagery (offers, testimonials) stays picsum until real assets drop into the same `imageUrl` fields.
 
 ---
 
@@ -404,7 +407,7 @@
 | F0 — Scaffold | 10 | 10 | `[x]` Complete |
 | F1 — Design System | 15 | 15 | `[x]` Complete |
 | F2 — App Shell | 7 | 7 | `[x]` Complete |
-| F3 — Home | 11 | 0 | `[ ]` Not started |
+| F3 — Home | 11 | 11 | `[x]` Complete |
 | F4 — Catalog | 11 | 11 | `[x]` Complete |
 | F5 — Details | 7 | 7 | `[x]` Complete |
 | F6 — Auth | 11 | 11 | `[x]` Complete |
@@ -419,7 +422,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **61** | **38%** |
+| **TOTAL** | **161** | **72** | **45%** |
 
 ---
 

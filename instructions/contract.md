@@ -247,6 +247,45 @@
 | referenceType | string | null | e.g., `"BOOKING"` |
 | createdAt | ISO 8601 | |
 
+### Offer
+
+> Home-screen promotional banner ("Offers for You"). Editorial/curated content — not tied to a Service.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | |
+| title | string | e.g., "Salon Luxury, Now on Wheels" |
+| subtitle | string | Supporting line |
+| ctaLabel | string | Short button label (max 3 words), e.g., "Book now" |
+| targetPath | string | In-app route the CTA navigates to, e.g., `/services` |
+| imageUrl | string | Banner image |
+| theme | enum | `DARK` \| `PRIMARY` — card colour treatment |
+| sortOrder | integer | Display order |
+
+### Testimonial
+
+> Home-screen featured testimonial ("What Our Customers Say"). Curated/featured content, distinct from the per-service **Review** entity (Reviews feature, F10) — a Testimonial is not tied to a booking and carries only display fields.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | |
+| authorName | string | e.g., "Meenal R." |
+| authorLocation | string | e.g., "Madhapur" |
+| avatarUrl | string | null | Optional; UI falls back to initials |
+| rating | integer | 1–5 |
+| quote | string | The testimonial text |
+| createdAt | ISO 8601 | |
+
+### Referral
+
+> Referral reward info for the home "Share the Beauty, Get Rewarded" card. Single resource (no list). Guest-visible; rewards are the same for everyone in MVP.
+
+| Field | Type | Notes |
+|---|---|---|
+| code | string | Shareable referral code, e.g., `"BEAUTY100"` |
+| referrerReward | Money | What the referrer earns |
+| refereeDiscount | Money | What the new customer gets off their first service |
+
 ---
 
 ## Booking Status Lifecycle
@@ -325,6 +364,24 @@
 - `sortBy` (`price_asc`, `price_desc`, `rating`, `name`) — sort order
 - `page` (integer, default 1) — page number
 - `limit` (integer, default 20, max 100) — items per page
+
+---
+
+### Home & Promotions — `STATUS: LOCKED (2026-07-13)`
+
+> Backs the F3 Home screen's editorial sections. All endpoints are guest-allowed (the home screen renders for logged-out visitors). Offers and testimonials are small curated lists returned in the single-resource envelope (a JSON array in `data`, no pagination) — mirroring `GET /categories`.
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| GET | `/api/v1/offers` | List active promotional offers ("Offers for You") | No |
+| GET | `/api/v1/testimonials` | List featured customer testimonials | No |
+| GET | `/api/v1/referral` | Get referral reward info for the "Share the Beauty" card | No |
+
+**GET `/api/v1/offers`** — Response: Success envelope with `Offer[]` (sorted by `sortOrder`).
+
+**GET `/api/v1/testimonials`** — Response: Success envelope with `Testimonial[]`.
+
+**GET `/api/v1/referral`** — Response: Success envelope with a single `Referral`.
 
 ---
 
@@ -428,6 +485,7 @@
 | 2026-06-11 | All | Initial draft — all sections DRAFT | Setup |
 | 2026-07-12 | Auth | Section locked for F6 implementation — endpoints and shapes unchanged from draft | Claude |
 | 2026-07-13 | Service Catalog | Draft amended to match Figma (source of truth): 6 categories (Men/Women/Kids/Seniors/Bride/Groom), `heroImageUrl` on ServiceCategory; `type` (COMBO/SINGLE), `originalPrice`, `discountPercent`, `includedServiceIds` on Service; `type` query param on GET /services; currency INR. Section locked for F4 implementation | Claude |
+| 2026-07-13 | Home & Promotions | Added new section + `Offer`, `Testimonial`, `Referral` entities and `GET /offers`, `/testimonials`, `/referral` (all guest) for the F3 Home editorial sections (Offers, Testimonials, Referral). Testimonial is deliberately distinct from the per-service Review (F10). Section locked for F3 implementation | Claude |
 
 ---
 

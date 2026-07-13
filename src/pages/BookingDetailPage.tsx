@@ -141,7 +141,15 @@ export function Component() {
 
   return (
     <div className="mx-auto max-w-xl py-2">
-      <PageHeader title="Booking details" backTo="/bookings" />
+      {/* Prefer history back so the list's ?tab= survives; fall back for deep links. */}
+      <PageHeader
+        title="Booking details"
+        onBack={() =>
+          ((window.history.state as { idx?: number } | null)?.idx ?? 0) > 0
+            ? navigate(-1)
+            : navigate('/bookings')
+        }
+      />
 
       <DataState<BookingDetail>
         data={query.data}

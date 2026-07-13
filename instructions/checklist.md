@@ -255,16 +255,18 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 87 | Intel Report for F8 — wait for approval | `[ ]` |
-| 88 | Create mock data (bookings in all statuses) + mock handlers (list, detail, cancel, reschedule) | `[ ]` |
-| 89 | Create booking list/detail API layer + hooks | `[ ]` |
-| 90 | Build BookingCard component (service image, name, ID, date, estimated time, category — per Figma) | `[ ]` |
-| 91 | Build MyBookingsPage with 3 tabs: Upcoming / Past / Cancelled (per Figma) | `[ ]` |
-| 92 | Build BookingDetailPage (service info, ID, date, time, address, services list, payment summary link, action buttons — per Figma) | `[ ]` |
-| 93 | Build action buttons per status: Track Van + Reschedule + Rebook + Cancel (active), Payment Summary only (completed) — per Figma | `[ ]` |
-| 94 | Build cancel flow (confirmation modal, 2h business rule, reason input) | `[ ]` |
-| 95 | Build reschedule flow (new time slot selection) | `[ ]` |
-| 96 | 4 data states + responsive for all booking management pages | `[ ]` |
+| 87 | Intel Report for F8 — wait for approval | `[x]` |
+| 88 | Create mock data (bookings in all statuses) + mock handlers (list, detail, cancel, reschedule) | `[x]` |
+| 89 | Create booking list/detail API layer + hooks | `[x]` |
+| 90 | Build BookingCard component (service image, name, ID, date, estimated time, category — per Figma) | `[x]` |
+| 91 | Build MyBookingsPage with 3 tabs: Upcoming / Past / Cancelled (per Figma) | `[x]` |
+| 92 | Build BookingDetailPage (service info, ID, date, time, address, services list, payment summary link, action buttons — per Figma) | `[x]` |
+| 93 | Build action buttons per status: Track Van + Reschedule + Rebook + Cancel (active), Payment Summary only (completed) — per Figma | `[x]` |
+| 94 | Build cancel flow (confirmation modal, 2h business rule, reason input) | `[x]` |
+| 95 | Build reschedule flow (new time slot selection) | `[x]` |
+| 96 | 4 data states + responsive for all booking management pages | `[x]` |
+
+> **F8 complete (2026-07-13).** Booking management per the LOCKED Availability & Booking contract — no contract changes needed. **Mock layer:** new read-only [`seedBookings`](../src/mocks/data/bookings.data.ts) (7 bookings priced through `priceCart` so summaries are byte-identical to checkout: 6 for Priya covering all 5 statuses — incl. a CONFIRMED at now+90min that demos the 2h lock and a COMPLETED with FLAT100 coupon — plus 1 for Rahul proving per-user scoping) **merged at read time with localStorage `bb-mock-bookings`, localStorage wins by id** — cancelling/rescheduling a seed upserts the mutated copy; the seeds module is never mutated. New handlers in booking.mock: `GET /bookings` (auth, comma-separated `status` filter, `scheduledAt` DESC, `paginated()`, `scenario=empty|error`), `GET /bookings/:id` (owned-or-404 per contract — other users' bookings 404, not 403; expands `specialist` from seeds + interim `address` from `checkoutAddresses`), `PATCH cancel`/`PATCH reschedule` (shared `assertModifiable`: 422 unless PENDING/CONFIRMED and ≥2h out; reschedule revalidates the slot exactly like POST with self-exclusion → 409 `SLOT_UNAVAILABLE`). Slot availability now reads the merged universe, so seed windows block double-booking. **Feature slice:** `BookingDetail`/`BookingAddress` types (+ zod, request schemas, list-query schema), `fetchBookings/fetchBooking/cancelBooking/rescheduleBooking`, hooks `useFetchBookings` (keepPreviousData, 30s stale) / `useFetchBooking` / `useCancelBooking` / `useRescheduleBooking`, `bookingPolicy` utils (`canModifyBooking`, status label/variant maps per design.md colors). **UI:** new shared [`Tabs`](../src/components/ui/Tabs.tsx) (role=tablist, arrow-key roving focus — F11 reuse), `BookingCard`, `BookingStatusBadge`, `BookingActions` (per status: PENDING/CONFIRMED → Track Van/Reschedule/Rebook/Cancel with 2h-locked disable + hint; IN_PROGRESS → Track Van+Rebook; COMPLETED → Payment summary only; CANCELLED → Rebook only), `CancelBookingModal` (RHF+Zod, client min-5 reason vs server min-1). MyBookingsPage: URL-driven `?tab=`/`?page=`, per-tab empty states, 1→2→3-col grid, pager. BookingDetailPage: summary/specialist/address cards + reused `CheckoutItemsList` + `PaymentSummaryCard` (action button scrolls + flips it open), reused `SlotPickerSheet` for reschedule with the F7 409 recovery (invalidate + reopen); back button prefers history (preserves the list tab) with a `/bookings` fallback for deep links. **Stubs:** Track Van → "coming soon" toast (F15); Rebook merges booking items into `useCartStore` and opens `/cart`. Verified: typecheck + build clean; **80/80 Vitest** (59 prior + 21 new: seed integrity, list auth/scoping/filters/400/sort/pagination/merge/scenarios, detail 404s + expanded shape, cancel 400/422×4/happy+persistence, reschedule 400/422/409×2/happy+window-swap); **56/56 browser checks** (scratchpad Playwright, priya + rahul) incl. full reschedule→cancel lifecycle, checkout→Upcoming merge, deliberate-404 error state with `[Booking]`-prefixed logging only, skeletons, empty tabs, zero unexpected console errors, zero horizontal overflow @ 375/768/1024/1440; 4 screenshots. **Caveats:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config blocked on package approval); Upcoming renders `scheduledAt` DESC per the locked contract (soonest last — flag for a future contract amendment if wanted). **F9 hand-off:** detail's `address` comes from interim `checkoutAddresses`; swap the source to the real Address entity (shape `{id,label,line}` already matches `BookingAddress`).
 
 ---
 
@@ -427,7 +429,7 @@
 | F5 — Details | 7 | 7 | `[x]` Complete |
 | F6 — Auth | 11 | 11 | `[x]` Complete |
 | F7 — Booking (integrated checkout) | 15 | 15 | `[x]` Complete |
-| F8 — My Bookings | 10 | 0 | `[ ]` Not started |
+| F8 — My Bookings | 10 | 10 | `[x]` Complete |
 | F9 — Profile | 8 | 0 | `[ ]` Not started |
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
 | F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
@@ -437,7 +439,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **103** | **62%** |
+| **TOTAL** | **166** | **113** | **68%** |
 
 ---
 

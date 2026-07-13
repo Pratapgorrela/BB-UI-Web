@@ -18,6 +18,7 @@ const router = createBrowserRouter([
       {
         path: '/services/:id',
         lazy: () => import('../pages/ServiceDetailPage'),
+        handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
       },
       {
         path: '/categories/:slug',

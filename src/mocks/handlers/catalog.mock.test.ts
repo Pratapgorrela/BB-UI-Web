@@ -184,6 +184,30 @@ describe('GET /services — sorting', () => {
   });
 });
 
+describe('GET /services/:id', () => {
+  it('returns the matching service in a single-resource envelope', async () => {
+    const target = seedServices[0];
+    const response = await client.get<ApiSuccess<Service>>(`/services/${target.id}`);
+
+    expect(response.data.success).toBe(true);
+    expect(response.data.error).toBeNull();
+    expect(response.data.data.id).toBe(target.id);
+    expect(() => serviceSchema.parse(response.data.data)).not.toThrow();
+  });
+
+  it('returns 404 RESOURCE_NOT_FOUND for an unknown id', async () => {
+    await expectApiError(
+      client.get('/services/00000000-0000-4000-8000-000000000000'),
+      404,
+      'RESOURCE_NOT_FOUND',
+    );
+  });
+
+  it('id=FORCE_500 returns the simulated server error', async () => {
+    await expectApiError(client.get('/services/FORCE_500'), 500, 'INTERNAL_ERROR');
+  });
+});
+
 describe('GET /services — errors', () => {
   it('search=FORCE_500 returns the simulated server error', async () => {
     await expectApiError(getServices({ search: 'FORCE_500' }), 500, 'INTERNAL_ERROR');

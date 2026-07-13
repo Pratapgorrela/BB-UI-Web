@@ -9,6 +9,7 @@ interface ServiceSectionProps {
   title: string;
   query: ReturnType<typeof useFetchServices>;
   emptyMessage: string;
+  onOpen: (service: Service) => void;
   onAdd: (service: Service) => void;
 }
 
@@ -28,7 +29,7 @@ function ServiceListSkeleton() {
   );
 }
 
-function ServiceSection({ title, query, emptyMessage, onAdd }: ServiceSectionProps) {
+function ServiceSection({ title, query, emptyMessage, onOpen, onAdd }: ServiceSectionProps) {
   return (
     <section className="flex flex-col gap-2">
       <h2 className="font-heading text-h3 font-semibold text-neutral-800">{title}</h2>
@@ -45,7 +46,12 @@ function ServiceSection({ title, query, emptyMessage, onAdd }: ServiceSectionPro
         {({ services }) => (
           <div className="divide-y divide-neutral-100">
             {services.map((service) => (
-              <ServiceListItem key={service.id} service={service} onAdd={onAdd} />
+              <ServiceListItem
+                key={service.id}
+                service={service}
+                onOpen={onOpen}
+                onAdd={onAdd}
+              />
             ))}
           </div>
         )}
@@ -85,6 +91,13 @@ export function Component() {
   const singlesQuery = useFetchServices(
     { categoryId: category?.id, type: 'SINGLE', limit: 50 },
     { enabled: !!category },
+  );
+
+  const handleOpen = useCallback(
+    (service: Service) => {
+      void navigate(`/services/${service.id}`);
+    },
+    [navigate],
   );
 
   const handleAdd = useCallback(() => {
@@ -139,12 +152,14 @@ export function Component() {
                   title="Combos"
                   query={combosQuery}
                   emptyMessage="No combos in this category yet"
+                  onOpen={handleOpen}
                   onAdd={handleAdd}
                 />
                 <ServiceSection
                   title="Single services"
                   query={singlesQuery}
                   emptyMessage="No individual services in this category yet"
+                  onOpen={handleOpen}
                   onAdd={handleAdd}
                 />
               </div>

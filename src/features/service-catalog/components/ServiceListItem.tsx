@@ -5,13 +5,15 @@ import type { Service } from '../types/catalog';
 
 interface ServiceListItemProps {
   service: Service;
+  /** When set, tapping the thumbnail/name opens the item (e.g. navigate to detail). */
+  onOpen?: (service: Service) => void;
   onAdd?: (service: Service) => void;
   className?: string;
 }
 
-function ServiceListItem({ service, onAdd, className = '' }: ServiceListItemProps) {
-  return (
-    <div className={['flex items-center gap-3 py-3', className].filter(Boolean).join(' ')}>
+function ServiceListItem({ service, onOpen, onAdd, className = '' }: ServiceListItemProps) {
+  const content = (
+    <>
       <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-neutral-200">
         <img
           src={service.imageUrl}
@@ -22,7 +24,7 @@ function ServiceListItem({ service, onAdd, className = '' }: ServiceListItemProp
         />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
         <div className="flex items-center gap-2">
           <h3
             title={service.name}
@@ -39,6 +41,22 @@ function ServiceListItem({ service, onAdd, className = '' }: ServiceListItemProp
           {formatPrice(service.price)}
         </span>
       </div>
+    </>
+  );
+
+  return (
+    <div className={['flex items-center gap-3 py-3', className].filter(Boolean).join(' ')}>
+      {onOpen ? (
+        <button
+          type="button"
+          onClick={() => onOpen(service)}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition-colors duration-fast ease-fast focus-visible:shadow-focus focus-visible:outline-none"
+        >
+          {content}
+        </button>
+      ) : (
+        <div className="flex min-w-0 flex-1 items-center gap-3">{content}</div>
+      )}
 
       {onAdd && (
         <button

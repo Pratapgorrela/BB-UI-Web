@@ -19,4 +19,9 @@ async function fetchServices(filters: ServiceFilters = {}): Promise<ServicesPage
   return { services: response.data.data, pagination: response.data.pagination };
 }
 
-export { fetchCategories, fetchServices };
+async function fetchService(id: string): Promise<Service> {
+  const response = await apiClient.get<ApiSuccess<Service>>(`/services/${id}`);
+  return response.data.data;
+}
+
+export { fetchCategories, fetchService, fetchServices };

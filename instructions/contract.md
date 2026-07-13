@@ -171,14 +171,15 @@
 
 ### TimeSlot
 
+> A capacity-level **arrival window** for the at-home service van/team — availability is per city-wide capacity, not per specialist (specialists are system-assigned at booking creation). Hourly windows, 09:00–18:00 start times. The booked services' duration comes from the booking's items, not the slot.
+
 | Field | Type | Notes |
 |---|---|---|
-| id | UUID | |
-| specialistId | UUID | FK → Specialist |
+| id | UUID | Opaque to clients; stable for a given date + startTime |
 | date | string | `YYYY-MM-DD` |
-| startTime | string | `HH:mm` (24h) |
-| endTime | string | `HH:mm` (24h) |
-| isAvailable | boolean | |
+| startTime | string | `HH:mm` (24h) — arrival-window start |
+| endTime | string | `HH:mm` (24h) — arrival-window end (start + 60 min) |
+| isAvailable | boolean | `false` when capacity is exhausted or the window has passed |
 
 ### Address
 
@@ -200,25 +201,26 @@
 
 ### Booking
 
+> The scheduled appointment created at checkout. Carries the ordered items + payment breakdown as immutable snapshots (superseding the retired `Order` entity). The specialist is **system-assigned at creation** — never client-supplied.
+
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | |
 | userId | UUID | FK → User |
-| serviceId | UUID | FK → Service |
-| specialistId | UUID | FK → Specialist |
-| addressId | UUID | FK → Address |
-| status | enum | See lifecycle below |
-| scheduledAt | ISO 8601 | Appointment date+time |
-| duration | integer | Minutes |
-| price | Money | Snapshot at booking time |
-| notes | string | null | Customer notes |
-| cancellationReason | string | null | Filled on cancel |
-| referenceCode | string | e.g., `"BB-20260611-A3F2"` |
+| referenceCode | string | e.g., `"BB-20260713-A3F2"` — shown on confirmation + booking cards |
+| items | CartItem[] | Snapshot of the ordered (selected) items |
+| paymentSummary | PaymentSummary | Snapshot of the final breakdown |
+| addressId | UUID | FK → Address (selected at checkout) |
+| specialistId | UUID | FK → Specialist — system-assigned at creation |
+| status | enum | See lifecycle below (`PENDING` at creation) |
+| scheduledAt | ISO 8601 | The booked slot's date + startTime as a UTC instant |
+| duration | integer | Minutes — Σ `service.duration × quantity` over items |
+| notes | string \| null | Customer notes |
+| cancellationReason | string \| null | Filled on cancel |
 | createdAt | ISO 8601 | |
 | updatedAt | ISO 8601 | |
-| service | Service | Expanded in detail responses |
-| specialist | Specialist | Expanded in detail responses |
-| address | Address | Expanded in detail responses |
+| specialist | Specialist | Expanded in detail responses only |
+| address | Address | Expanded in detail responses only (real Address data lands with F9) |
 
 ### Review
 
@@ -327,17 +329,7 @@
 
 ### Order
 
-> The result of placing an order at checkout. In MVP this is a lightweight confirmation record — scheduling (time slot / specialist) is intentionally **out of scope** and owned by F7 Booking. `status` is always `PLACED`.
-
-| Field | Type | Notes |
-|---|---|---|
-| id | UUID | |
-| referenceCode | string | e.g., `"BB-20260713-7QF2"` — shown on the confirmation screen |
-| items | CartItem[] | Snapshot of the ordered (selected) items |
-| paymentSummary | PaymentSummary | Snapshot of the final breakdown |
-| addressId | UUID | FK → Address (selected at checkout) |
-| status | enum | `PLACED` |
-| createdAt | ISO 8601 | |
+> **Superseded (2026-07-13):** replaced by the amended `Booking` entity — checkout now creates a scheduled Booking directly (F7). See the change log.
 
 ---
 
@@ -440,13 +432,14 @@
 
 ### Cart & Checkout — `STATUS: LOCKED (2026-07-13)`
 
-> Backs the F13 Cart & Checkout flow. The **cart itself is client-state** (persisted in the browser via `useCartStore` — guest-friendly, no cart endpoints). These endpoints cover the two things that must be server-authoritative: available coupons, price computation, and order placement. `/coupons` and `/checkout/summary` are guest-allowed (a visitor can price a cart before logging in); `/orders` requires auth.
+> Backs the F13 Cart & Checkout flow. The **cart itself is client-state** (persisted in the browser via `useCartStore` — guest-friendly, no cart endpoints). These endpoints cover what must be server-authoritative: available coupons and price computation. `/coupons` and `/checkout/summary` are guest-allowed (a visitor can price a cart before logging in).
+>
+> **POST /orders — superseded (2026-07-13):** replaced by `POST /bookings` (Availability & Booking), which adds `timeSlotId` to the same payload and returns a scheduled Booking. `GET /coupons` and `POST /checkout/summary` are unchanged.
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
 | GET | `/api/v1/coupons` | List available promotional coupons | No |
 | POST | `/api/v1/checkout/summary` | Compute the payment breakdown for a set of items (+ optional coupon) | No |
-| POST | `/api/v1/orders` | Place an order for the selected items | Yes |
 
 **GET `/api/v1/coupons`** — Response: Success envelope with `Coupon[]` (curated list in `data`, no pagination — mirrors `/offers`). Supports `?scenario=empty|error` for state testing.
 
@@ -462,56 +455,59 @@
 // Error: BUSINESS_RULE_VIOLATION (422) — coupon minSubtotal not met
 ```
 
-**POST `/api/v1/orders`**
-```json
-// Request
-{
-  "items": [{ "serviceId": "UUID", "quantity": 1 }],
-  "couponCode": "string | null",
-  "addressId": "UUID"
-}
-// Response: Success envelope with an Order (status: PLACED, referenceCode)
-// Error: UNAUTHORIZED (401) — no/invalid access token
-// Error: VALIDATION_ERROR (400) — empty items, unknown serviceId/couponCode, missing addressId
-// Error: BUSINESS_RULE_VIOLATION (422) — coupon minSubtotal not met
-```
-
 ---
 
-### Availability & Booking — `STATUS: DRAFT`
+### Availability & Booking — `STATUS: LOCKED (2026-07-13)`
+
+> Backs F7 (slot selection + booking creation inside checkout) and F8 (My Bookings). Slots are capacity-level arrival windows queried **by date only** — no specialist or service inputs; the system assigns a specialist at booking creation. `POST /bookings` supersedes the retired `POST /orders`: it takes the checkout payload plus a `timeSlotId` and returns the scheduled Booking.
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
-| GET | `/api/v1/time-slots` | Query available time slots | No |
-| POST | `/api/v1/bookings` | Create a new booking | Yes |
-| GET | `/api/v1/bookings` | List my bookings (filter by status) | Yes |
-| GET | `/api/v1/bookings/:id` | Get booking detail | Yes |
-| PATCH | `/api/v1/bookings/:id/reschedule` | Reschedule a booking | Yes |
+| GET | `/api/v1/time-slots` | Arrival windows for a date | No |
+| POST | `/api/v1/bookings` | Create a booking from the checkout payload | Yes |
+| GET | `/api/v1/bookings` | List my bookings (paginated, filter by status) | Yes |
+| GET | `/api/v1/bookings/:id` | Booking detail (expanded specialist + address) | Yes |
+| PATCH | `/api/v1/bookings/:id/reschedule` | Move a booking to a new slot | Yes |
 | PATCH | `/api/v1/bookings/:id/cancel` | Cancel a booking | Yes |
 
 **GET `/api/v1/time-slots`** — Query params:
-- `specialistId` (UUID, required) — specialist to check
-- `serviceId` (UUID, required) — service to check (for duration)
-- `date` (YYYY-MM-DD, required) — date to check
+- `date` (`YYYY-MM-DD`, required)
+
+Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resource envelope, no pagination — mirrors `/coupons`). Past dates and dates beyond the 14-day booking horizon return an **empty array** (not an error); for today, windows whose startTime has passed are `isAvailable: false`. `VALIDATION_ERROR` (400) on a missing or malformed `date`. Mock supports `?scenario=empty|error` for state testing.
 
 **POST `/api/v1/bookings`**
 ```json
 // Request
 {
-  "serviceId": "UUID",
-  "specialistId": "UUID",
-  "timeSlotId": "UUID",
+  "items": [{ "serviceId": "UUID", "quantity": 1 }],
+  "couponCode": "string | null",
   "addressId": "UUID",
+  "timeSlotId": "UUID",
   "notes": "string | null"
 }
-// Response: Success envelope with Booking entity (status: PENDING)
+// Response 201: Success envelope with a Booking (status: PENDING, system-assigned
+//               specialistId, scheduledAt from the slot, priced server-side exactly
+//               like POST /checkout/summary)
+// Error: UNAUTHORIZED (401) — no/invalid access token
+// Error: VALIDATION_ERROR (400) — empty items, unknown serviceId/couponCode,
+//        missing addressId, malformed timeSlotId
+// Error: BUSINESS_RULE_VIOLATION (422) — coupon minSubtotal not met
+// Error: SLOT_UNAVAILABLE (409) — slot no longer available (taken, past, or outside
+//        the horizon). Client recovery: clear the selection, refetch slots, reopen
+//        the picker.
 ```
+
+**GET `/api/v1/bookings`** — Query params: `status` (optional, comma-separated BookingStatus values, e.g. `?status=PENDING,CONFIRMED`), `page`, `limit` (paginated envelope). Sorted by `scheduledAt` descending. Returns only the caller's bookings. *(Mock handlers land in F8 — contract locked here.)*
+
+**GET `/api/v1/bookings/:id`** — Booking with expanded `specialist` + `address`. `RESOURCE_NOT_FOUND` (404) when the id does not exist **or belongs to another user**.
 
 **PATCH `/api/v1/bookings/:id/reschedule`**
 ```json
 // Request
 { "timeSlotId": "UUID" }
-// Response: Success envelope with updated Booking
+// Response: Success envelope with updated Booking (new scheduledAt, updatedAt)
+// Error: SLOT_UNAVAILABLE (409); BUSINESS_RULE_VIOLATION (422) if status is not
+//        PENDING or CONFIRMED, or < 2h before the current scheduledAt
 ```
 
 **PATCH `/api/v1/bookings/:id/cancel`**
@@ -519,7 +515,8 @@
 // Request
 { "cancellationReason": "string" }
 // Response: Success envelope with updated Booking (status: CANCELLED)
-// Error: BUSINESS_RULE_VIOLATION if < 2h before scheduledAt
+// Error: BUSINESS_RULE_VIOLATION (422) if < 2h before scheduledAt or status is not
+//        PENDING/CONFIRMED
 ```
 
 ---
@@ -580,6 +577,8 @@
 | 2026-07-13 | Service Catalog | Draft amended to match Figma (source of truth): 6 categories (Men/Women/Kids/Seniors/Bride/Groom), `heroImageUrl` on ServiceCategory; `type` (COMBO/SINGLE), `originalPrice`, `discountPercent`, `includedServiceIds` on Service; `type` query param on GET /services; currency INR. Section locked for F4 implementation | Claude |
 | 2026-07-13 | Home & Promotions | Added new section + `Offer`, `Testimonial`, `Referral` entities and `GET /offers`, `/testimonials`, `/referral` (all guest) for the F3 Home editorial sections (Offers, Testimonials, Referral). Testimonial is deliberately distinct from the per-service Review (F10). Section locked for F3 implementation | Claude |
 | 2026-07-13 | Cart & Checkout | Added new section + `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities and `GET /coupons`, `POST /checkout/summary`, `POST /orders`. Cart is client-state (persisted `useCartStore`); server owns coupons, pricing, and order placement. Scheduling deferred to F7. Section locked for F13 implementation | Claude |
+| 2026-07-13 | Availability & Booking | Rewritten for the integrated cart→checkout flow, then locked for F7/F8: TimeSlot is a capacity-level hourly arrival window queried by date only (specialistId removed — specialists are system-assigned at booking creation); Booking now carries `items: CartItem[]` + `paymentSummary` snapshots (multi-service), system-assigned `specialistId`, `referenceCode`, and `scheduledAt` derived from the slot; `POST /bookings` takes `{items, couponCode, addressId, timeSlotId, notes}` and supersedes `POST /orders`; `SLOT_UNAVAILABLE` (409) defined on create/reschedule; `GET /bookings` gains status filter + pagination detail | Claude |
+| 2026-07-13 | Cart & Checkout | `POST /orders` and the `Order` entity superseded by `POST /bookings` + the amended `Booking` — checkout now creates a scheduled booking directly, giving F8 real data. `GET /coupons` and `POST /checkout/summary` unchanged | Claude |
 
 ---
 

@@ -23,7 +23,7 @@ function ServiceDetailSkeleton() {
   return (
     <div aria-hidden="true">
       <Skeleton variant="rectangle" className="h-72 w-full rounded-none" />
-      <div className="relative -mt-6 rounded-t-3xl bg-neutral-0 px-5 pt-6">
+      <div className="relative -mt-6 rounded-t-xl bg-neutral-0 px-5 pt-6">
         <Skeleton variant="line" width="60%" height="1.75rem" />
         <Skeleton variant="line" width="40%" className="mt-3" />
         <Skeleton variant="line" width="90%" className="mt-4" />
@@ -47,17 +47,17 @@ interface DetailBodyProps {
 
 function DetailBody({ service, included, recommended, onOpen, onAdd }: DetailBodyProps) {
   return (
-    <div className="relative -mt-6 rounded-t-3xl bg-neutral-0 px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+6.5rem)]">
+    <div className="relative -mt-6 rounded-t-xl bg-neutral-0 px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+6.5rem)]">
       <header>
         <div className="flex items-start justify-between gap-3">
-          <h1 className="font-heading text-h2 font-bold text-neutral-900">{service.name}</h1>
+          <h1 className="font-heading text-h3 font-bold text-neutral-900">{service.name}</h1>
           {service.discountPercent != null && (
             <DiscountBadge percentage={service.discountPercent} className="mt-1 shrink-0" />
           )}
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="font-mono text-h3 font-bold text-neutral-900">
+          <span className="font-mono text-h4 font-bold text-neutral-900">
             {formatPrice(service.price)}
           </span>
           {service.originalPrice && (
@@ -84,14 +84,14 @@ function DetailBody({ service, included, recommended, onOpen, onAdd }: DetailBod
         </div>
       </header>
 
-      <p className="mt-4 text-body text-neutral-600">{service.description}</p>
+      <p className="mt-4 text-body-sm text-neutral-600">{service.description}</p>
 
       {included.length > 0 && (
         <section className="mt-6">
-          <h2 className="font-heading text-h3 font-semibold text-neutral-800">What's included</h2>
+          <h2 className="font-heading text-h4 font-semibold text-neutral-800">What's included</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {included.map((item) => (
-              <li key={item.id} className="flex items-center gap-2 text-body text-neutral-700">
+              <li key={item.id} className="flex items-center gap-2 text-body-sm text-neutral-700">
                 <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-success-100">
                   <Check size={14} className="text-success-600" aria-hidden="true" />
                 </span>
@@ -104,7 +104,7 @@ function DetailBody({ service, included, recommended, onOpen, onAdd }: DetailBod
 
       {recommended.length > 0 && (
         <section className="mt-6">
-          <h2 className="font-heading text-h3 font-semibold text-neutral-800">Recommended</h2>
+          <h2 className="font-heading text-h4 font-semibold text-neutral-800">Recommended</h2>
           <div className="mt-1 divide-y divide-neutral-100">
             {recommended.map((item) => (
               <ServiceListItem key={item.id} service={item} onOpen={onOpen} onAdd={onAdd} />

@@ -7,7 +7,9 @@ import { CheckoutItemsList, PaymentSummaryCard } from '../features/cart';
 import {
   BookingActions,
   BookingStatusBadge,
+  CancelBookingModal,
   formatScheduledAt,
+  useCancelBooking,
   useFetchBooking,
 } from '../features/booking';
 import type { BookingDetail } from '../features/booking';
@@ -76,6 +78,20 @@ export function Component() {
   const summaryRef = useRef<HTMLDivElement>(null);
   // Remounts PaymentSummaryCard with defaultOpen so "Payment summary" flips it open.
   const [summaryNonce, setSummaryNonce] = useState(0);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const cancelBooking = useCancelBooking();
+
+  async function handleCancelConfirm(cancellationReason: string) {
+    if (!id) return;
+    try {
+      await cancelBooking.mutateAsync({ id, cancellationReason });
+      setCancelOpen(false);
+    } catch {
+      // Toast comes from the hook; refetch so a raced 2h/status change updates the buttons.
+      setCancelOpen(false);
+      void query.refetch();
+    }
+  }
 
   function handleTrackVan() {
     addToast('Live van tracking is coming soon.', 'info');
@@ -127,7 +143,7 @@ export function Component() {
               onTrackVan={handleTrackVan}
               onReschedule={() => addToast('Reschedule is coming in the next step.', 'info')}
               onRebook={() => handleRebook(booking)}
-              onCancel={() => addToast('Cancel is coming in the next step.', 'info')}
+              onCancel={() => setCancelOpen(true)}
               onShowPaymentSummary={handleShowPaymentSummary}
             />
             <SpecialistCard booking={booking} />
@@ -140,6 +156,14 @@ export function Component() {
                 defaultOpen={summaryNonce > 0}
               />
             </div>
+
+            <CancelBookingModal
+              open={cancelOpen}
+              onClose={() => setCancelOpen(false)}
+              booking={booking}
+              onConfirm={(reason) => void handleCancelConfirm(reason)}
+              isPending={cancelBooking.isPending}
+            />
           </div>
         )}
       </DataState>

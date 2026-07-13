@@ -68,3 +68,4 @@ export { SelectedSlotCard } from './components/SelectedSlotCard';
 export { BookingCard } from './components/BookingCard';
 export { BookingStatusBadge } from './components/BookingStatusBadge';
 export { BookingActions } from './components/BookingActions';
+export { CancelBookingModal } from './components/CancelBookingModal';

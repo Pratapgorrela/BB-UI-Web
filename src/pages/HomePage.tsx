@@ -1,8 +1,28 @@
+import {
+  CategoryGridSection,
+  HomeHeader,
+  HomeSearchBar,
+  OffersSection,
+  PopularCombosSection,
+  ReferralCard,
+  SupportFab,
+  TestimonialsSection,
+} from '../features/home';
+
 export function Component() {
   return (
-    <div className="py-6">
-      <h1 className="font-heading text-h1 font-bold text-neutral-800">Beauty Bus</h1>
-      <p className="text-body text-neutral-600">Welcome to Beauty Bus. Your beauty, delivered.</p>
-    </div>
+    <>
+      {/* pb clears the floating Support button above the last section */}
+      <div className="flex flex-col gap-6 py-4 pb-20">
+        <HomeHeader />
+        <HomeSearchBar />
+        <CategoryGridSection />
+        <PopularCombosSection />
+        <OffersSection />
+        <TestimonialsSection />
+        <ReferralCard />
+      </div>
+      <SupportFab />
+    </>
   );
 }

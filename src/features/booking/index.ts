@@ -1,26 +1,49 @@
 export type {
   Booking,
+  BookingAddress,
+  BookingDetail,
+  BookingListFilters,
+  BookingsPage,
   BookingStatus,
+  CancelBookingRequest,
   CreateBookingRequest,
+  RescheduleBookingRequest,
   Specialist,
   TimeSlot,
 } from './types/booking';
 
 export {
+  bookingAddressSchema,
+  bookingDetailSchema,
   bookingSchema,
+  bookingsListQuerySchema,
   bookingStatusSchema,
+  cancelBookingFormSchema,
+  cancelBookingRequestSchema,
   createBookingRequestSchema,
   isoDateSchema,
+  rescheduleBookingRequestSchema,
   specialistSchema,
   timeSlotSchema,
   timeSlotsQuerySchema,
 } from './types/booking.schema';
 
-export { createBooking, fetchTimeSlots } from './api/bookingApi';
+export {
+  cancelBooking,
+  createBooking,
+  fetchBooking,
+  fetchBookings,
+  fetchTimeSlots,
+  rescheduleBooking,
+} from './api/bookingApi';
 
-export { bookingKeys, SLOTS_STALE_TIME_MS } from './hooks/keys';
+export { BOOKINGS_STALE_TIME_MS, bookingKeys, SLOTS_STALE_TIME_MS } from './hooks/keys';
 export { useFetchTimeSlots } from './hooks/useFetchTimeSlots';
 export { useCreateBooking } from './hooks/useCreateBooking';
+export { useFetchBookings } from './hooks/useFetchBookings';
+export { useFetchBooking } from './hooks/useFetchBooking';
+export { useCancelBooking } from './hooks/useCancelBooking';
+export { useRescheduleBooking } from './hooks/useRescheduleBooking';
 
 export {
   dateFromIso,

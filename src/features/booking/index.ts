@@ -54,7 +54,16 @@ export {
 } from './utils/slotFormat';
 export type { SlotPeriodGroup } from './utils/slotFormat';
 
+export {
+  BOOKING_STATUS_LABEL,
+  BOOKING_STATUS_VARIANT,
+  CANCELLATION_WINDOW_MS,
+  canModifyBooking,
+} from './utils/bookingPolicy';
+
 export { DateStrip } from './components/DateStrip';
 export { TimeSlotGrid } from './components/TimeSlotGrid';
 export { SlotPickerSheet } from './components/SlotPickerSheet';
 export { SelectedSlotCard } from './components/SelectedSlotCard';
+export { BookingCard } from './components/BookingCard';
+export { BookingStatusBadge } from './components/BookingStatusBadge';

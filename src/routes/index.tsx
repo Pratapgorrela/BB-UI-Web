@@ -20,6 +20,11 @@ const router = createBrowserRouter([
         lazy: () => import('../pages/ServiceDetailPage'),
       },
       {
+        path: '/categories/:slug',
+        lazy: () => import('../pages/CategoryDetailPage'),
+        handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
+      },
+      {
         path: '/login',
         lazy: () => import('../pages/LoginPage'),
         handle: { hideNav: true } satisfies AppRouteHandle,

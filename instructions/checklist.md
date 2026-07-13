@@ -30,7 +30,7 @@
 | Section | Status | Locked Date | Consuming Features |
 |---|---|---|---|
 | Auth | `LOCKED` | 2026-07-12 | F6 |
-| Service Catalog | `DRAFT` | — | F3, F4, F5 |
+| Service Catalog | `LOCKED` | 2026-07-13 | F3, F4, F5 |
 | Availability & Booking | `DRAFT` | — | F7, F8 |
 | Profile & Addresses | `DRAFT` | — | F9 |
 | Reviews | `DRAFT` | — | F10 |
@@ -160,17 +160,23 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 43 | Lock Service Catalog contract section | `[ ]` |
-| 44 | Intel Report for F4 — wait for approval | `[ ]` |
-| 45 | Create Service, ServiceCategory types + Zod schemas | `[ ]` |
-| 46 | Create mock data (12+ services, 6 categories: Men/Women/Kids/Seniors/Bride/Groom, combo + single services) + mock handlers | `[ ]` |
-| 47 | Create API layer functions (fetchServices, fetchCategories) | `[ ]` |
-| 48 | Create React Query hooks (useFetchServices, useFetchCategories) with query keys | `[ ]` |
-| 49 | Build ServiceCard component (image + name + description + price + "+" add button — per Figma) | `[ ]` |
-| 50 | Build CategoryDetailPage (hero image, category name/description, Combos section, Single Services section — per Figma Men Services) | `[ ]` |
-| 51 | Build category filter bar | `[ ]` |
-| 52 | Build search + sort controls | `[ ]` |
-| 53 | Compose ServiceCatalogPage — category grid, filter, search, 4 data states, responsive | `[ ]` |
+| 43 | Lock Service Catalog contract section | `[x]` |
+| 44 | Intel Report for F4 — wait for approval | `[x]` |
+| 45 | Create Service, ServiceCategory types + Zod schemas | `[x]` |
+| 46 | Create mock data (12+ services, 6 categories: Men/Women/Kids/Seniors/Bride/Groom, combo + single services) + mock handlers | `[x]` |
+| 47 | Create API layer functions (fetchServices, fetchCategories) | `[x]` |
+| 48 | Create React Query hooks (useFetchServices, useFetchCategories) with query keys | `[x]` |
+| 49 | Build ServiceCard component (image + name + description + price + "+" add button — per Figma) | `[x]` |
+| 50 | Build CategoryDetailPage (hero image, category name/description, Combos section, Single Services section — per Figma Men Services) | `[x]` |
+| 51 | Build category filter bar | `[x]` |
+| 52 | Build search + sort controls | `[x]` |
+| 53 | Compose ServiceCatalogPage — category grid, filter, search, 4 data states, responsive | `[x]` |
+
+> **F4 complete (2026-07-13).** Contract amended to the Figma combo model before locking (`type` COMBO/SINGLE, `originalPrice`/`discountPercent`/`includedServiceIds`, `heroImageUrl`, `type` query param, INR). 34 seed services across 6 categories (Seniors deliberately has no combos → exercises the empty Combos section). New route `/categories/:slug` → CategoryDetailPage; `/services/:id` stays reserved for F5. ServiceCard "+" shows a "Cart is coming soon" toast — real cart lands in F13. **Fixed a latent mockEngine bug**: the axios adapter ignored `config.params`, so any GET with query params (all catalog filters) would have silently returned unfiltered data; also added a `paginated()` envelope helper. Verified: typecheck + build clean; 17 Vitest integration tests through the real mock adapter (envelopes, pagination math, all filters, sorting, FORCE_500, validation errors, seed↔schema integrity); **37/37 automated browser checks** (scratchpad Playwright harness) covering skeletons, 4 data states, chip/search/sort/pagination with URL params, cart toast, Men/Seniors/unknown-slug detail pages, grid columns 1→2→3→4 and zero horizontal overflow at 375/768/1024/1440px, zero console errors on happy paths + `[Catalog]`-prefixed error logging on failure. **Caveat**: `npm run lint` fails repo-wide (pre-existing — ESLint 10 flat config never created; needs `typescript-eslint`, blocked on package approval per Rule 10).
+
+> **F4 design revision (2026-07-13, post-review).** User compared `/services` against Figma 184:4383 and supplied the final card artwork as `public/{Kids,Seniors,Men,Women,Bride,Groom}.png` (182×157). Page recomposed **Figma-exact**: header "Our Services" + subtitle + 6 image cards with centered labels *below* the card; category seeds now point at the local PNGs. The on-page "All services" browser (chips, search, sort, paginated list) was removed per user decision — `CategoryFilterBar`/`CatalogControls`/`CatalogPagination` stay exported from the feature barrel for F14 Search (step 143 reuse). Services are browsed via category detail pages. Re-verified: typecheck/build clean, 17/17 Vitest, **20/20 browser checks** (Figma copy/order/assets, labels below images, browsing UI absent, detail-page click-through, 2/3/6 grid columns + zero overflow at 375/768/1440). Note: PNGs are 1× — consider re-exporting at 2× for high-DPI phones (same filenames, no code change). Also reduced the category card corner radius to 12px (`rounded-lg`) per user request.
+
+> **F4 category-detail revision (2026-07-13).** User supplied the Figma "Men Services" target; `/categories/:slug` recomposed to an **immersive** layout (user decisions: keep picsum placeholder imagery for now; hide nav). Route now carries `handle: { hideNav: true, fullBleed: true }`. [CategoryDetailPage](../src/pages/CategoryDetailPage.tsx) = full-bleed hero (`heroImageUrl` + gradient scrim + faded category-name watermark + floating white back button → `/services`) over a rounded content sheet (`-mt-6 rounded-t-3xl`) with `<h1>` + subtitle, then **Combos** and **Single services** as horizontal list rows. New [`ServiceListItem`](../src/features/service-catalog/components/ServiceListItem.tsx) component (thumbnail · name + `DiscountBadge` · one-line desc · price · grey `+`) replaces the vertical `ServiceCard` grid on this page; **`ServiceCard` stays exported, parked for F3 Home**. Verified: typecheck/build clean, 17/17 Vitest, **16/16 browser checks** (hero to top, no nav, back→/services, 4 combos with "20% OFF" + 6 singles without, ₹ prices, empty combos on Seniors, zero overflow at 375/1440, zero console errors). Imagery stays picsum until the user drops real assets into the same `imageUrl`/`heroImageUrl` fields.
 
 ---
 
@@ -395,7 +401,7 @@
 | F1 — Design System | 15 | 15 | `[x]` Complete |
 | F2 — App Shell | 7 | 7 | `[x]` Complete |
 | F3 — Home | 11 | 0 | `[ ]` Not started |
-| F4 — Catalog | 11 | 0 | `[ ]` Not started |
+| F4 — Catalog | 11 | 11 | `[x]` Complete |
 | F5 — Details | 7 | 0 | `[ ]` Not started |
 | F6 — Auth | 11 | 11 | `[x]` Complete |
 | F7 — Booking | 15 | 0 | `[ ]` Not started |
@@ -409,7 +415,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **43** | **27%** |
+| **TOTAL** | **161** | **54** | **34%** |
 
 ---
 

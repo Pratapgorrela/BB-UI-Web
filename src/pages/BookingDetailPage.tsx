@@ -1,10 +1,17 @@
-import { useParams } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Star } from 'lucide-react';
 import { PageHeader } from '../components/layout';
-import { Avatar, Card, DataState, SkeletonCard } from '../components/ui';
+import { Avatar, Card, DataState, SkeletonCard, useToast } from '../components/ui';
 import { CheckoutItemsList, PaymentSummaryCard } from '../features/cart';
-import { BookingStatusBadge, formatScheduledAt, useFetchBooking } from '../features/booking';
+import {
+  BookingActions,
+  BookingStatusBadge,
+  formatScheduledAt,
+  useFetchBooking,
+} from '../features/booking';
 import type { BookingDetail } from '../features/booking';
+import { useCartStore } from '../store/useCartStore';
 import { formatDuration } from '../utils/format';
 
 function SummaryCard({ booking }: { booking: BookingDetail }) {
@@ -62,7 +69,38 @@ function AddressCard({ booking }: { booking: BookingDetail }) {
 
 export function Component() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { addToast } = useToast();
   const query = useFetchBooking(id);
+
+  const summaryRef = useRef<HTMLDivElement>(null);
+  // Remounts PaymentSummaryCard with defaultOpen so "Payment summary" flips it open.
+  const [summaryNonce, setSummaryNonce] = useState(0);
+
+  function handleTrackVan() {
+    addToast('Live van tracking is coming soon.', 'info');
+  }
+
+  /** Re-adds the booking's items to the cart (bumping quantities) and opens it. */
+  function handleRebook(booking: BookingDetail) {
+    for (const item of booking.items) {
+      const cart = useCartStore.getState();
+      const existing = cart.items.find((line) => line.serviceId === item.serviceId);
+      if (existing) {
+        cart.updateQuantity(item.serviceId, existing.quantity + item.quantity);
+      } else {
+        cart.addItem(item.service);
+        if (item.quantity > 1) cart.updateQuantity(item.serviceId, item.quantity);
+      }
+    }
+    addToast('Services added to your cart.', 'success');
+    navigate('/cart');
+  }
+
+  function handleShowPaymentSummary() {
+    setSummaryNonce((nonce) => nonce + 1);
+    summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   return (
     <div className="mx-auto max-w-xl py-2">
@@ -84,10 +122,24 @@ export function Component() {
         {(booking) => (
           <div className="flex flex-col gap-4 pb-6">
             <SummaryCard booking={booking} />
+            <BookingActions
+              booking={booking}
+              onTrackVan={handleTrackVan}
+              onReschedule={() => addToast('Reschedule is coming in the next step.', 'info')}
+              onRebook={() => handleRebook(booking)}
+              onCancel={() => addToast('Cancel is coming in the next step.', 'info')}
+              onShowPaymentSummary={handleShowPaymentSummary}
+            />
             <SpecialistCard booking={booking} />
             <AddressCard booking={booking} />
             <CheckoutItemsList items={booking.items} />
-            <PaymentSummaryCard summary={booking.paymentSummary} />
+            <div ref={summaryRef}>
+              <PaymentSummaryCard
+                key={summaryNonce}
+                summary={booking.paymentSummary}
+                defaultOpen={summaryNonce > 0}
+              />
+            </div>
           </div>
         )}
       </DataState>

@@ -14,6 +14,7 @@ import {
   useFetchServices,
 } from '../features/service-catalog';
 import type { Service } from '../features/service-catalog';
+import { useCartStore } from '../store/useCartStore';
 import { formatDuration, formatPrice } from '../utils/format';
 import { getApiError } from '../utils/apiError';
 
@@ -121,6 +122,8 @@ export function Component() {
   const navigate = useNavigate();
   const { addToast } = useToast();
 
+  const addItem = useCartStore((state) => state.addItem);
+
   const serviceQuery = useFetchService(id ?? '');
   const service = serviceQuery.data;
 
@@ -160,9 +163,13 @@ export function Component() {
     [navigate],
   );
 
-  const handleAdd = useCallback(() => {
-    addToast('Cart is coming soon', 'info');
-  }, [addToast]);
+  const handleAdd = useCallback(
+    (target: Service) => {
+      addItem(target);
+      addToast(`${target.name} added to cart`, 'success');
+    },
+    [addItem, addToast],
+  );
 
   return (
     <div className="min-h-dvh bg-neutral-0">
@@ -210,7 +217,7 @@ export function Component() {
               duration={formatDuration(resolved.duration)}
               ctaLabel="Add to cart"
               currency={resolved.price.currency}
-              onCtaClick={handleAdd}
+              onCtaClick={() => handleAdd(resolved)}
             />
           </>
         )}

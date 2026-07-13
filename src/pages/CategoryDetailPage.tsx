@@ -4,6 +4,7 @@ import { ArrowLeft, PackageOpen } from 'lucide-react';
 import { DataState, Skeleton, useToast } from '../components/ui';
 import { ServiceListItem, useFetchCategories, useFetchServices } from '../features/service-catalog';
 import type { Service } from '../features/service-catalog';
+import { useCartStore } from '../store/useCartStore';
 
 interface ServiceSectionProps {
   title: string;
@@ -80,6 +81,7 @@ export function Component() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const addItem = useCartStore((state) => state.addItem);
 
   const categoriesQuery = useFetchCategories();
   const category = categoriesQuery.data?.find((candidate) => candidate.slug === slug);
@@ -100,9 +102,13 @@ export function Component() {
     [navigate],
   );
 
-  const handleAdd = useCallback(() => {
-    addToast('Cart is coming soon', 'info');
-  }, [addToast]);
+  const handleAdd = useCallback(
+    (service: Service) => {
+      addItem(service);
+      addToast(`${service.name} added to cart`, 'success');
+    },
+    [addItem, addToast],
+  );
 
   return (
     <div className="min-h-dvh bg-neutral-0">

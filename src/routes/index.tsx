@@ -26,6 +26,11 @@ const router = createBrowserRouter([
         handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
       },
       {
+        path: '/cart',
+        lazy: () => import('../pages/CartPage'),
+        handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
+      },
+      {
         path: '/login',
         lazy: () => import('../pages/LoginPage'),
         handle: { hideNav: true } satisfies AppRouteHandle,
@@ -57,6 +62,16 @@ const router = createBrowserRouter([
           {
             path: '/notifications',
             lazy: () => import('../pages/NotificationsPage'),
+          },
+          {
+            path: '/checkout',
+            lazy: () => import('../pages/CheckoutPage'),
+            handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
+          },
+          {
+            path: '/order-confirmation',
+            lazy: () => import('../pages/OrderConfirmationPage'),
+            handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
           },
         ],
       },

@@ -286,6 +286,59 @@
 | referrerReward | Money | What the referrer earns |
 | refereeDiscount | Money | What the new customer gets off their first service |
 
+### CartItem
+
+> A single line in the cart. The cart itself is client-state (persisted in the browser, guest-friendly) — this entity documents the shape the client holds and sends to the pricing/order endpoints. `service` is the expanded Service snapshot so the cart survives without re-fetching.
+
+| Field | Type | Notes |
+|---|---|---|
+| serviceId | UUID | FK → Service |
+| service | Service | Expanded Service snapshot (name, price, imageUrl, duration, etc.) |
+| quantity | integer | ≥ 1; defaults to 1 |
+| selected | boolean | Whether this line is included in the checkout total (per-item checkbox in the Figma cart) |
+| lineTotal | Money | `service.price × quantity` — snapshot for display; server recomputes authoritatively |
+
+### Coupon
+
+> A promotional discount applied at checkout ("Offers & Coupons"). Curated list; not tied to a Service.
+
+| Field | Type | Notes |
+|---|---|---|
+| code | string | Uppercase, unique — the code the user enters, e.g., `"SAVE20"` |
+| label | string | Short display name, e.g., "20% off" |
+| description | string | One-line explainer, e.g., "20% off orders above ₹999" |
+| discountType | enum | `PERCENT` \| `FLAT` |
+| discountValue | integer | For `PERCENT`: whole percent (e.g., `20`); for `FLAT`: amount in minor units (paise) |
+| minSubtotal | Money \| null | Minimum eligible service-charges subtotal; `null` = no minimum |
+| maxDiscount | Money \| null | Cap on the discount for `PERCENT` coupons; `null` = uncapped |
+
+### PaymentSummary
+
+> The checkout price breakdown, computed server-side from the selected cart items + optional coupon. All amounts in minor units, `INR`.
+
+| Field | Type | Notes |
+|---|---|---|
+| serviceCharges | Money | Σ of selected `lineTotal` (pre-discount, pre-tax) |
+| discount | Money | Amount removed by `appliedCoupon`; `{ amount: 0 }` when none |
+| taxes | Money | `round((serviceCharges − discount) × taxRatePercent / 100)` |
+| total | Money | `serviceCharges − discount + taxes` |
+| appliedCoupon | Coupon \| null | The coupon applied, or `null` |
+| taxRatePercent | integer | Tax rate used, e.g., `18` (GST) |
+
+### Order
+
+> The result of placing an order at checkout. In MVP this is a lightweight confirmation record — scheduling (time slot / specialist) is intentionally **out of scope** and owned by F7 Booking. `status` is always `PLACED`.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | |
+| referenceCode | string | e.g., `"BB-20260713-7QF2"` — shown on the confirmation screen |
+| items | CartItem[] | Snapshot of the ordered (selected) items |
+| paymentSummary | PaymentSummary | Snapshot of the final breakdown |
+| addressId | UUID | FK → Address (selected at checkout) |
+| status | enum | `PLACED` |
+| createdAt | ISO 8601 | |
+
 ---
 
 ## Booking Status Lifecycle
@@ -382,6 +435,46 @@
 **GET `/api/v1/testimonials`** — Response: Success envelope with `Testimonial[]`.
 
 **GET `/api/v1/referral`** — Response: Success envelope with a single `Referral`.
+
+---
+
+### Cart & Checkout — `STATUS: LOCKED (2026-07-13)`
+
+> Backs the F13 Cart & Checkout flow. The **cart itself is client-state** (persisted in the browser via `useCartStore` — guest-friendly, no cart endpoints). These endpoints cover the two things that must be server-authoritative: available coupons, price computation, and order placement. `/coupons` and `/checkout/summary` are guest-allowed (a visitor can price a cart before logging in); `/orders` requires auth.
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| GET | `/api/v1/coupons` | List available promotional coupons | No |
+| POST | `/api/v1/checkout/summary` | Compute the payment breakdown for a set of items (+ optional coupon) | No |
+| POST | `/api/v1/orders` | Place an order for the selected items | Yes |
+
+**GET `/api/v1/coupons`** — Response: Success envelope with `Coupon[]` (curated list in `data`, no pagination — mirrors `/offers`). Supports `?scenario=empty|error` for state testing.
+
+**POST `/api/v1/checkout/summary`**
+```json
+// Request
+{
+  "items": [{ "serviceId": "UUID", "quantity": 1 }],
+  "couponCode": "string | null"
+}
+// Response: Success envelope with a PaymentSummary
+// Error: VALIDATION_ERROR (400) — empty items, unknown serviceId, or unknown couponCode
+// Error: BUSINESS_RULE_VIOLATION (422) — coupon minSubtotal not met
+```
+
+**POST `/api/v1/orders`**
+```json
+// Request
+{
+  "items": [{ "serviceId": "UUID", "quantity": 1 }],
+  "couponCode": "string | null",
+  "addressId": "UUID"
+}
+// Response: Success envelope with an Order (status: PLACED, referenceCode)
+// Error: UNAUTHORIZED (401) — no/invalid access token
+// Error: VALIDATION_ERROR (400) — empty items, unknown serviceId/couponCode, missing addressId
+// Error: BUSINESS_RULE_VIOLATION (422) — coupon minSubtotal not met
+```
 
 ---
 
@@ -486,6 +579,7 @@
 | 2026-07-12 | Auth | Section locked for F6 implementation — endpoints and shapes unchanged from draft | Claude |
 | 2026-07-13 | Service Catalog | Draft amended to match Figma (source of truth): 6 categories (Men/Women/Kids/Seniors/Bride/Groom), `heroImageUrl` on ServiceCategory; `type` (COMBO/SINGLE), `originalPrice`, `discountPercent`, `includedServiceIds` on Service; `type` query param on GET /services; currency INR. Section locked for F4 implementation | Claude |
 | 2026-07-13 | Home & Promotions | Added new section + `Offer`, `Testimonial`, `Referral` entities and `GET /offers`, `/testimonials`, `/referral` (all guest) for the F3 Home editorial sections (Offers, Testimonials, Referral). Testimonial is deliberately distinct from the per-service Review (F10). Section locked for F3 implementation | Claude |
+| 2026-07-13 | Cart & Checkout | Added new section + `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities and `GET /coupons`, `POST /checkout/summary`, `POST /orders`. Cart is client-state (persisted `useCartStore`); server owns coupons, pricing, and order placement. Scheduling deferred to F7. Section locked for F13 implementation | Claude |
 
 ---
 

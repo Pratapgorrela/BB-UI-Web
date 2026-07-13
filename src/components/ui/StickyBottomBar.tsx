@@ -9,6 +9,8 @@ interface StickyBottomBarProps {
   ctaLabel?: string;
   onCtaClick: () => void;
   currency?: string;
+  /** Pre-formatted price (e.g. `formatPrice(...)` → "₹1,299"); overrides currency + totalPrice display. */
+  priceLabel?: string;
   disabled?: boolean;
   className?: string;
   children?: ReactNode;
@@ -21,6 +23,7 @@ function StickyBottomBar({
   ctaLabel = 'Continue',
   onCtaClick,
   currency = 'INR',
+  priceLabel,
   disabled = false,
   className = '',
 }: StickyBottomBarProps) {
@@ -49,7 +52,7 @@ function StickyBottomBar({
       {/* Price & info */}
       <div className="flex-1 min-w-0">
         <p className="text-body font-bold text-neutral-800">
-          {currency} {totalPrice.toLocaleString('en-IN')}
+          {priceLabel ?? `${currency} ${totalPrice.toLocaleString('en-IN')}`}
         </p>
         <p className="text-caption text-neutral-500 truncate">
           {serviceCount} {serviceCount === 1 ? 'Service' : 'Services'}

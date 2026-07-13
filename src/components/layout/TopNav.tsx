@@ -1,12 +1,32 @@
 import { Link, NavLink } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { ShoppingCart, Sparkles } from 'lucide-react';
 import { Container } from './Container';
 import { NAV_ITEMS } from './navItems';
 import { Avatar } from '../ui';
 import { useAuthStore } from '../../store/useAuthStore';
+import { cartItemCount, useCartStore } from '../../store/useCartStore';
 import { useLogoutUser } from '../../features/auth';
 
 const primaryLinks = NAV_ITEMS.slice(0, 3);
+
+function CartLink() {
+  const cartCount = useCartStore((state) => cartItemCount(state.items));
+
+  return (
+    <Link
+      to="/cart"
+      aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : 'Cart'}
+      className="relative flex size-9 items-center justify-center rounded-md text-neutral-700 transition-colors duration-fast ease-fast hover:bg-neutral-100 hover:text-primary-600 focus-visible:shadow-focus focus-visible:outline-none"
+    >
+      <ShoppingCart size={20} aria-hidden="true" />
+      {cartCount > 0 && (
+        <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-danger-500 px-1 text-caption font-semibold text-neutral-0">
+          {cartCount}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 function AuthActions() {
   const user = useAuthStore((state) => state.user);
@@ -86,7 +106,10 @@ function TopNav() {
             </NavLink>
           ))}
         </nav>
-        <AuthActions />
+        <div className="flex items-center gap-3">
+          <CartLink />
+          <AuthActions />
+        </div>
       </Container>
     </header>
   );

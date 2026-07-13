@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { DataState, Skeleton, useToast } from '../../../components/ui';
 import { ServiceCard, useFetchServices } from '../../service-catalog';
 import type { Service, ServicesPage } from '../../service-catalog';
+import { useCartStore } from '../../../store/useCartStore';
 import { SectionHeading } from './SectionHeading';
 
 const HEADING_ID = 'home-popular-combos';
@@ -10,6 +11,7 @@ const HEADING_ID = 'home-popular-combos';
 function PopularCombosSection() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const addItem = useCartStore((state) => state.addItem);
   const combosQuery = useFetchServices({ type: 'COMBO', isPopular: true, limit: 10 });
 
   return (
@@ -44,7 +46,10 @@ function PopularCombosSection() {
                 <ServiceCard
                   service={service}
                   onOpen={(item) => void navigate(`/services/${item.id}`)}
-                  onAdd={() => addToast('Cart is coming soon', 'info')}
+                  onAdd={(item) => {
+                    addItem(item);
+                    addToast(`${item.name} added to cart`, 'success');
+                  }}
                 />
               </li>
             ))}

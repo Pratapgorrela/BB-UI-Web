@@ -36,7 +36,7 @@
 | Profile & Addresses | `DRAFT` | — | F9 |
 | Reviews | `DRAFT` | — | F10 |
 | Notifications & Alerts | `DRAFT` | — | F11 |
-| Cart & Checkout | `DRAFT` | — | F13 |
+| Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
 | Help & Support | `DRAFT` | — | F16 |
 
 ---
@@ -328,17 +328,19 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 129 | Add Cart & Checkout contract section to contract.md | `[ ]` |
-| 130 | Intel Report for F13 — wait for approval | `[ ]` |
-| 131 | Create Cart, CartItem, PaymentSummary types + Zod schemas | `[ ]` |
-| 132 | Create mock data (cart items, coupons, payment breakdown) + mock handlers | `[ ]` |
-| 133 | Create cart API layer + React Query hooks | `[ ]` |
-| 134 | Create useCartStore (Zustand — items, add/remove/update, total calculation) | `[ ]` |
-| 135 | Build CartPage — item cards with checkbox, image, name, category, duration, price, delete, "+ Add Service" button, sticky bottom CTA (per Figma) | `[ ]` |
-| 136 | Build CheckoutPage — user info, cart summary, "Offers & Coupons" section, payment breakdown (Services Charges, Taxes, Total), saved addresses with radio select, "Add Slot" CTA (per Figma) | `[ ]` |
-| 137 | Build PaymentSummaryCard component (expandable breakdown) | `[ ]` |
-| 138 | Build cart icon with badge count (integrate into Home header — per Figma) | `[ ]` |
-| 139 | 4 data states + responsive | `[ ]` |
+| 129 | Add Cart & Checkout contract section to contract.md | `[x]` |
+| 130 | Intel Report for F13 — wait for approval | `[x]` |
+| 131 | Create Cart, CartItem, PaymentSummary types + Zod schemas | `[x]` |
+| 132 | Create mock data (cart items, coupons, payment breakdown) + mock handlers | `[x]` |
+| 133 | Create cart API layer + React Query hooks | `[x]` |
+| 134 | Create useCartStore (Zustand — items, add/remove/update, total calculation) | `[x]` |
+| 135 | Build CartPage — item cards with checkbox, image, name, category, duration, price, delete, "+ Add Service" button, sticky bottom CTA (per Figma) | `[x]` |
+| 136 | Build CheckoutPage — user info, cart summary, "Offers & Coupons" section, payment breakdown (Services Charges, Taxes, Total), saved addresses with radio select, "Add Slot" CTA (per Figma) | `[x]` |
+| 137 | Build PaymentSummaryCard component (expandable breakdown) | `[x]` |
+| 138 | Build cart icon with badge count (integrate into Home header — per Figma) | `[x]` |
+| 139 | 4 data states + responsive | `[x]` |
+
+> **F13 complete (2026-07-13).** New **LOCKED "Cart & Checkout" contract section** (Rule 1): `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities + `GET /coupons`, `POST /checkout/summary`, `POST /orders`. **Hybrid state model** (user decision): the cart is client-state in a persisted `useCartStore` (`bb-cart` — guest-friendly, survives refresh, `addItem`/`removeItem`/`updateQuantity`/`toggleSelected`/`clearCart` + `cartItemCount`/`cartSubtotal`/`selectedCartItems`/`cartSelectedDuration` selectors); coupons + payment math are **server-authoritative** via the mock (`priceCart` recomputes serviceCharges from seed, applies PERCENT/FLAT coupons with `minSubtotal`/`maxDiscount`, 18% GST). New `src/features/cart/` feature (types → Zod → api → hooks → components → barrel) + `src/mocks/{data/cart.data.ts (4 coupons), handlers/cart.mock.ts}`. **Checkout terminates at a mock order** (user decision): `POST /orders` (auth-guarded, mirrors the auth token guard) returns an `Order` with a `BB-YYYYMMDD-XXXX` reference; scheduling ("Add Slot") is **deferred to F7** with a toast. Pages: `CartPage` (`/cart`, guest-allowed), `CheckoutPage` (`/checkout`, inside `<ProtectedRoute>`), `OrderConfirmationPage` (`/order-confirmation`). **Activated every dead "add to cart" button** — Home combos, `ServiceDetailPage` (sticky + recommended), `CategoryDetailPage` rows now call `useCartStore.addItem` with a success toast; `HomeHeader` cart icon → `/cart` with live badge (wired from `HomePage`); **new cart icon + badge added to desktop `TopNav`** (had none). **Reused** `StickyBottomBar` (+ small backward-compatible `priceLabel` prop for ₹ output — mirrors the F5 approach), `Card`, `Button`, `DiscountBadge`, `TextInput`, `Avatar`, `DataState`, `Skeleton`, `useToast`, `formatPrice`/`formatDuration`. **New components:** `CartItemCard`, `PaymentSummaryCard` (expandable), `CouponSection`, `AddressSelect`. Coupon rejection is handled without `useEffect` — the summary is a `keepPreviousData` query, so a bad coupon shows an inline error while the last good breakdown stays on screen; Place order is disabled until it's fixed. **Addresses are interim** (`checkoutAddresses` static list) pending F9 (Profile & Addresses, DRAFT) — hand-off noted in the file. Verified: typecheck + `vite build` clean; **45/45 Vitest** (30 existing + 15 new cart: coupon list happy/`scenario=empty`/`error`, summary math + FLAT/capped-PERCENT coupons + `minSubtotal` 422 + unknown coupon/service 400 + empty-items 400, order 401-without-token/201-with-token/coupon-through-order, seed↔schema integrity); **29/29 browser checks** (scratchpad Playwright) covering add-from-Home→badge, cart select/qty/empty states, guest→/login redirect, authenticated checkout, FLAT100 apply + BIG50 gated-rejection, place order→confirmation with reference code, cart cleared, `[Cart]`-prefixed handled-error logging on the deliberate rejection, zero unexpected console errors, zero horizontal overflow @ 375/768/1024/1440, desktop TopNav cart link. Screenshots captured (cart/checkout/confirmation). **Caveat:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config never created; Rule 10 package approval pending). Imagery stays picsum until real assets drop into the same `imageUrl` fields.
 
 ---
 
@@ -417,12 +419,12 @@
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
 | F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
-| F13 — Cart & Checkout | 11 | 0 | `[ ]` Not started |
+| F13 — Cart & Checkout | 11 | 11 | `[x]` Complete |
 | F14 — Search | 5 | 0 | `[ ]` Not started |
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **72** | **45%** |
+| **TOTAL** | **161** | **83** | **52%** |
 
 ---
 

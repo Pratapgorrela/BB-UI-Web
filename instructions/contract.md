@@ -521,24 +521,42 @@ Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resou
 
 ---
 
-### Profile & Addresses — `STATUS: DRAFT`
+### Profile & Addresses — `STATUS: LOCKED (2026-07-13)`
+
+> Backs F9. `GET /profile` returns the same `User` shape as `GET /auth/me` (the profile screen's source of truth). Addresses are per-user and scoped by the access token — a caller only ever sees, edits, or deletes their own. Setting `isDefault: true` on an address (via POST or PATCH) is **exclusive**: the mock unsets `isDefault` on the user's other addresses in the same operation, so exactly one default exists. The first address a user creates is forced to `isDefault: true`.
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
-| GET | `/api/v1/profile` | Get current user profile | Yes |
+| GET | `/api/v1/profile` | Get current user profile (same `User` as `/auth/me`) | Yes |
 | PATCH | `/api/v1/profile` | Update profile fields | Yes |
-| GET | `/api/v1/addresses` | List user's addresses | Yes |
+| GET | `/api/v1/addresses` | List user's addresses (single-resource envelope, `Address[]`, default first) | Yes |
 | POST | `/api/v1/addresses` | Add a new address | Yes |
 | PATCH | `/api/v1/addresses/:id` | Update an address | Yes |
 | DELETE | `/api/v1/addresses/:id` | Delete an address | Yes |
 
-**DELETE `/api/v1/addresses/:id`** — Business rule: cannot delete an address used by an upcoming (PENDING or CONFIRMED) booking. Returns `BUSINESS_RULE_VIOLATION` with details.
+**GET `/api/v1/addresses`** — Response: Success envelope with `Address[]` (the caller's addresses, default first then newest). Supports `?scenario=empty|error` for state testing.
 
 **PATCH `/api/v1/profile`**
 ```json
-// Request (partial update)
-{ "firstName": "string", "lastName": "string", "phone": "string", "avatarUrl": "string" }
+// Request (partial update — any subset)
+{ "firstName": "string", "lastName": "string", "phone": "string" }
+// Response: Success envelope with the updated User (updatedAt refreshed)
+// Error: UNAUTHORIZED (401); VALIDATION_ERROR (400) on malformed fields
 ```
+
+**POST `/api/v1/addresses`**
+```json
+// Request
+{ "label": "string", "street": "string", "apartment": "string | null",
+  "city": "string", "state": "string", "zipCode": "string",
+  "country": "string", "isDefault": boolean }
+// Response 201: Success envelope with the created Address
+// Error: UNAUTHORIZED (401); VALIDATION_ERROR (400)
+```
+
+**PATCH `/api/v1/addresses/:id`** — Partial update of any address field. `RESOURCE_NOT_FOUND` (404) when the id does not exist or belongs to another user; `VALIDATION_ERROR` (400) on malformed fields.
+
+**DELETE `/api/v1/addresses/:id`** — Business rule: cannot delete an address used by an upcoming (`PENDING` or `CONFIRMED`) booking. Returns `BUSINESS_RULE_VIOLATION` (422) with details. `RESOURCE_NOT_FOUND` (404) when the id does not exist or belongs to another user. Deleting the default address promotes the next address (if any) to default.
 
 ---
 
@@ -579,6 +597,7 @@ Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resou
 | 2026-07-13 | Cart & Checkout | Added new section + `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities and `GET /coupons`, `POST /checkout/summary`, `POST /orders`. Cart is client-state (persisted `useCartStore`); server owns coupons, pricing, and order placement. Scheduling deferred to F7. Section locked for F13 implementation | Claude |
 | 2026-07-13 | Availability & Booking | Rewritten for the integrated cart→checkout flow, then locked for F7/F8: TimeSlot is a capacity-level hourly arrival window queried by date only (specialistId removed — specialists are system-assigned at booking creation); Booking now carries `items: CartItem[]` + `paymentSummary` snapshots (multi-service), system-assigned `specialistId`, `referenceCode`, and `scheduledAt` derived from the slot; `POST /bookings` takes `{items, couponCode, addressId, timeSlotId, notes}` and supersedes `POST /orders`; `SLOT_UNAVAILABLE` (409) defined on create/reschedule; `GET /bookings` gains status filter + pagination detail | Claude |
 | 2026-07-13 | Cart & Checkout | `POST /orders` and the `Order` entity superseded by `POST /bookings` + the amended `Booking` — checkout now creates a scheduled booking directly, giving F8 real data. `GET /coupons` and `POST /checkout/summary` unchanged | Claude |
+| 2026-07-13 | Profile & Addresses | Section locked for F9. No new fields — the drafted `Address` entity + 6 endpoints stand as-is. Clarifications added: `GET /profile` mirrors `/auth/me` (`User`); `GET /addresses` uses the single-resource envelope (`Address[]`, default first) with `?scenario=empty|error`; `isDefault` is exclusive (setting one unsets siblings); first address forced default; deleting the default promotes the next; delete blocked (422) when a PENDING/CONFIRMED booking references the address | Claude |
 
 ---
 

@@ -33,7 +33,7 @@
 | Service Catalog | `LOCKED` | 2026-07-13 | F3, F4, F5 |
 | Home & Promotions | `LOCKED` | 2026-07-13 | F3 |
 | Availability & Booking | `LOCKED` | 2026-07-13 | F7, F8 |
-| Profile & Addresses | `DRAFT` | — | F9 |
+| Profile & Addresses | `LOCKED` | 2026-07-13 | F9 |
 | Reviews | `DRAFT` | — | F10 |
 | Notifications & Alerts | `DRAFT` | — | F11 |
 | Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
@@ -274,14 +274,16 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 97 | Intel Report for F9 — wait for approval | `[ ]` |
-| 98 | Create mock data (addresses) + mock handlers (profile CRUD, address CRUD) | `[ ]` |
-| 99 | Create profile/address API layer + hooks | `[ ]` |
-| 100 | Build ProfilePage — avatar with initials, name + phone, menu links (My Bookings, Saved Addresses, Notifications, Help & Support, Terms & Policies), Logout button — per Figma | `[ ]` |
-| 101 | Build AddressList component (radio select, delete icon, "Add Address" link — per Figma Saved Addresses) | `[ ]` |
-| 102 | Build AddressForm component (add/edit, RHF + Zod) | `[ ]` |
-| 103 | Handle delete-blocked-by-upcoming-booking error | `[ ]` |
-| 104 | 4 data states + responsive for profile pages | `[ ]` |
+| 97 | Intel Report for F9 — wait for approval | `[x]` |
+| 98 | Create mock data (addresses) + mock handlers (profile CRUD, address CRUD) | `[x]` |
+| 99 | Create profile/address API layer + hooks | `[x]` |
+| 100 | Build ProfilePage — avatar with initials, name + phone, menu links (My Bookings, Saved Addresses, Notifications, Help & Support, Terms & Policies), Logout button — per Figma | `[x]` |
+| 101 | Build AddressList component (radio select, delete icon, "Add Address" link — per Figma Saved Addresses) | `[x]` |
+| 102 | Build AddressForm component (add/edit, RHF + Zod) | `[x]` |
+| 103 | Handle delete-blocked-by-upcoming-booking error | `[x]` |
+| 104 | 4 data states + responsive for profile pages | `[x]` |
+
+> **F9 complete (2026-07-13).** Profile & Addresses per the now-**LOCKED** contract section (no new fields; clarifications added: `GET /profile` mirrors `/auth/me`, `isDefault` exclusive, first address forced default, delete-default promotes next, delete blocked by upcoming booking). New `src/features/profile/` slice (types → Zod → api → hooks → components → utils → barrel). **Mock layer:** new read-only [`seedAddresses`](../src/mocks/data/addresses.data.ts) (Priya ×3 — Home+Office reuse the retired interim `checkoutAddresses` UUIDs so existing seed bookings still resolve; "Parents' House" is unreferenced → freely deletable — plus Rahul ×1) **merged over localStorage `bb-mock-addresses` with a tombstone set `bb-mock-addresses-deleted`** (seed edits/deletes overlay without mutating the seed module — the seed+overlay+tombstone pattern, extending the F8 merge approach to support deletes). New [`profile.mock`](../src/mocks/handlers/profile.mock.ts): `GET/PATCH /profile` (override store `bb-mock-profile` keyed by userId; PATCH also updates the auth store client-side so TopNav/greeting stay in sync), `GET /addresses` (auth, default-first, `?scenario=empty|error`), `POST` (first-address & requested default made exclusive), `PATCH` (owned-or-404, exclusive default), `DELETE` (owned-or-404; **422 when a PENDING/CONFIRMED booking references it** — reads the merged booking universe via a newly-exported `allBookings` from booking.mock; promotes the next address to default when the default is removed). Exposed `findUserById` from auth.mock + `findAddressRecord` from profile.mock (booking.mock's detail expansion now derives its `{id,label,line}` address from the **real** Address via `addressToLine`, replacing the interim import). **Feature slice:** `Address`/request types (+ entity/form/request Zod), `fetchProfile/updateProfile` + `fetch/create/update/deleteAddress`, hooks (`useFetchProfile`, `useUpdateProfile`, `useFetchAddresses`, `useCreateAddress`, `useUpdateAddress`, `useDeleteAddress` — invalidation + toasts + `[Profile]` logs), `addressToLine` util. **UI:** ProfilePage rebuilt from the F6 stub (avatar+initials, name/email/phone, **Edit** → `ProfileEditSheet` [reused `Modal` + RHF/Zod, email read-only], menu links → My bookings/Saved addresses/Notifications [live routes] + Help & support/Terms & policies [F16/F17 "coming soon" toasts], Log out); new `/profile/addresses` **SavedAddressesPage** (`PageHeader` + Add, `AddressList` [default badge, Set-as-default, Edit, Delete], `AddressFormSheet` add/edit, delete-confirm `Modal`). **Integration:** CheckoutPage now reads `useFetchAddresses` (default auto-selected, empty → "Add an address" CTA → `/profile/addresses`) via a decoupled `AddressOption` shape on `AddressSelect`; **interim `src/features/cart/data/checkoutAddresses.ts` deleted** and all consumers migrated. Added `setUser` to `useAuthStore`. Verified: typecheck + `vite build` clean; **102/102 Vitest** (80 prior + 22 new: seed integrity, profile 401/400/happy+persistence, addresses list scoping/default-order/scenarios, create 401/400/happy/exclusive-default, update 404×2/happy, delete 404/422-blocked/happy/promote-default). **Caveats:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config blocked on package approval); browser walkthrough pending user testing; Figma screens (Profile 184:7051, Saved Addresses 184:7185/7228/7281) weren't reachable this session (connector auth) — layout built to brand language, expect a design-revision pass like F4/F5; no avatar upload (no storage backend — avatar stays initials).
 
 ---
 
@@ -430,7 +432,7 @@
 | F6 — Auth | 11 | 11 | `[x]` Complete |
 | F7 — Booking (integrated checkout) | 15 | 15 | `[x]` Complete |
 | F8 — My Bookings | 10 | 10 | `[x]` Complete |
-| F9 — Profile | 8 | 0 | `[ ]` Not started |
+| F9 — Profile | 8 | 8 | `[x]` Complete |
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
 | F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
@@ -439,7 +441,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **113** | **68%** |
+| **TOTAL** | **166** | **121** | **73%** |
 
 ---
 

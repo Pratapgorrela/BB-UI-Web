@@ -56,6 +56,10 @@ const router = createBrowserRouter([
             lazy: () => import('../pages/ProfilePage'),
           },
           {
+            path: '/profile/addresses',
+            lazy: () => import('../pages/SavedAddressesPage'),
+          },
+          {
             path: '/notifications',
             lazy: () => import('../pages/NotificationsPage'),
           },

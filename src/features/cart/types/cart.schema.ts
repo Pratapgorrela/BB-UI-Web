@@ -30,16 +30,6 @@ const paymentSummarySchema = z.object({
   taxRatePercent: z.number().int().nonnegative(),
 });
 
-const orderSchema = z.object({
-  id: z.uuid(),
-  referenceCode: z.string().min(1),
-  items: z.array(cartItemSchema),
-  paymentSummary: paymentSummarySchema,
-  addressId: z.uuid(),
-  status: z.literal('PLACED'),
-  createdAt: z.iso.datetime(),
-});
-
 /* ── Request schemas (validate handler bodies) ── */
 
 const cartLineInputSchema = z.object({
@@ -52,17 +42,11 @@ const checkoutSummaryRequestSchema = z.object({
   couponCode: z.string().trim().min(1).nullable().optional(),
 });
 
-const placeOrderRequestSchema = checkoutSummaryRequestSchema.extend({
-  addressId: z.uuid(),
-});
-
 export {
   cartItemSchema,
   cartLineInputSchema,
   checkoutSummaryRequestSchema,
   couponDiscountTypeSchema,
   couponSchema,
-  orderSchema,
   paymentSummarySchema,
-  placeOrderRequestSchema,
 };

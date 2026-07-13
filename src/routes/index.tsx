@@ -52,10 +52,6 @@ const router = createBrowserRouter([
             lazy: () => import('../pages/BookingDetailPage'),
           },
           {
-            path: '/book',
-            lazy: () => import('../pages/BookingFlowPage'),
-          },
-          {
             path: '/profile',
             lazy: () => import('../pages/ProfilePage'),
           },
@@ -69,8 +65,8 @@ const router = createBrowserRouter([
             handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
           },
           {
-            path: '/order-confirmation',
-            lazy: () => import('../pages/OrderConfirmationPage'),
+            path: '/booking-confirmation',
+            lazy: () => import('../pages/BookingConfirmationPage'),
             handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
           },
         ],

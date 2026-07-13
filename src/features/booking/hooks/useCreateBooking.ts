@@ -1,25 +1,27 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { placeOrder } from '../api/cartApi';
-import { cartKeys } from './keys';
+import { createBooking } from '../api/bookingApi';
+import { bookingKeys } from './keys';
+import { cartKeys } from '../../cart/hooks/keys';
 import { useCartStore } from '../../../store/useCartStore';
 import { useToast } from '../../../components/ui';
 import { getApiErrorMessage } from '../../../utils/apiError';
 
-export function usePlaceOrder() {
+export function useCreateBooking() {
   const clearCart = useCartStore((state) => state.clearCart);
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
   return useMutation({
-    mutationFn: placeOrder,
-    onSuccess: (order) => {
+    mutationFn: createBooking,
+    onSuccess: (booking) => {
       clearCart();
+      void queryClient.invalidateQueries({ queryKey: bookingKeys.all });
       void queryClient.invalidateQueries({ queryKey: cartKeys.all });
-      addToast(`Order placed — ${order.referenceCode}`, 'success');
-      console.log('[Cart] Order placed:', order.referenceCode);
+      addToast(`Booking placed — ${booking.referenceCode}`, 'success');
+      console.log('[Booking] Booking placed:', booking.referenceCode);
     },
     onError: (error) => {
-      console.error('[Cart] Failed to place order:', getApiErrorMessage(error));
+      console.error('[Booking] Failed to place booking:', getApiErrorMessage(error));
       addToast(getApiErrorMessage(error), 'error');
     },
   });

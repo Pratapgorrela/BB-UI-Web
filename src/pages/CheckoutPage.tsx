@@ -1,31 +1,42 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarPlus } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft } from 'lucide-react';
 import { Avatar, Button, DataState, StickyBottomBar, useToast } from '../components/ui';
 import {
   AddressSelect,
+  CheckoutItemsList,
   CouponSection,
   PaymentSummaryCard,
   checkoutAddresses,
   useCheckoutSummary,
   useFetchCoupons,
-  usePlaceOrder,
 } from '../features/cart';
 import type { Coupon } from '../features/cart';
-import { selectedCartItems, useCartStore } from '../store/useCartStore';
+import {
+  SelectedSlotCard,
+  SlotPickerSheet,
+  bookingKeys,
+  useCreateBooking,
+} from '../features/booking';
+import type { TimeSlot } from '../features/booking';
+import { cartSelectedDuration, selectedCartItems, useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { formatPrice } from '../utils/format';
-import { getApiErrorMessage } from '../utils/apiError';
+import { formatDuration, formatPrice } from '../utils/format';
+import { getApiError, getApiErrorMessage } from '../utils/apiError';
 
 export function Component() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const items = useCartStore((state) => state.items);
   const selected = selectedCartItems(items);
 
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [addressId, setAddressId] = useState<string>(checkoutAddresses[0]?.id ?? '');
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const lineInputs = selected.map((item) => ({
     serviceId: item.serviceId,
@@ -34,27 +45,38 @@ export function Component() {
 
   const summaryQuery = useCheckoutSummary({ items: lineInputs, couponCode: appliedCode });
   const couponsQuery = useFetchCoupons();
-  const placeOrder = usePlaceOrder();
+  const createBooking = useCreateBooking();
 
   const summary = summaryQuery.data;
   const couponRejected = !!appliedCode && summaryQuery.isError;
   const appliedCoupon: Coupon | null = couponRejected ? null : (summary?.appliedCoupon ?? null);
   const couponError = couponRejected ? getApiErrorMessage(summaryQuery.error) : undefined;
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceBooking = async () => {
     if (!addressId) {
       addToast('Please select a service address.', 'error');
       return;
     }
+    if (!selectedSlot) {
+      addToast('Choose a time slot to continue.', 'error');
+      setPickerOpen(true);
+      return;
+    }
     try {
-      const order = await placeOrder.mutateAsync({
+      const booking = await createBooking.mutateAsync({
         items: lineInputs,
         couponCode: appliedCode,
         addressId,
+        timeSlotId: selectedSlot.id,
       });
-      navigate('/order-confirmation', { state: { order }, replace: true });
-    } catch {
-      /* error toast handled in usePlaceOrder */
+      navigate('/booking-confirmation', { state: { booking }, replace: true });
+    } catch (error) {
+      // Toast is handled in useCreateBooking; recover the slot-taken race here.
+      if (getApiError(error)?.code === 'SLOT_UNAVAILABLE') {
+        setSelectedSlot(null);
+        void queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+        setPickerOpen(true);
+      }
     }
   };
 
@@ -100,33 +122,7 @@ export function Component() {
               </section>
             )}
 
-            {/* Cart summary */}
-            <section aria-labelledby="summary-heading" className="flex flex-col gap-2">
-              <h2
-                id="summary-heading"
-                className="font-heading text-body font-semibold text-neutral-900"
-              >
-                Your services
-              </h2>
-              <ul className="flex flex-col divide-y divide-neutral-100 rounded-lg bg-neutral-0 px-4">
-                {selected.map((item) => (
-                  <li
-                    key={item.serviceId}
-                    className="flex items-center justify-between gap-3 py-3 text-body-sm"
-                  >
-                    <span className="min-w-0 truncate text-neutral-700">
-                      {item.service.name}
-                      {item.quantity > 1 && (
-                        <span className="text-neutral-400"> × {item.quantity}</span>
-                      )}
-                    </span>
-                    <span className="shrink-0 font-mono font-semibold text-neutral-900">
-                      {formatPrice(item.lineTotal)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <CheckoutItemsList items={selected} />
 
             {/* Coupons */}
             <DataState
@@ -159,24 +155,28 @@ export function Component() {
               onSelect={setAddressId}
             />
 
-            {/* Scheduling — deferred to F7 */}
-            <button
-              type="button"
-              onClick={() => addToast('Scheduling comes in F7 — your slot is set at booking.', 'info')}
-              className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 py-3 text-body-sm font-semibold text-neutral-600 transition-colors duration-fast ease-fast hover:bg-neutral-100 focus-visible:shadow-focus focus-visible:outline-none"
-            >
-              <CalendarPlus size={18} aria-hidden="true" />
-              Add slot
-            </button>
+            {/* Scheduling */}
+            <SelectedSlotCard
+              slot={selectedSlot}
+              durationLabel={formatDuration(cartSelectedDuration(items))}
+              onOpen={() => setPickerOpen(true)}
+            />
           </div>
+
+          <SlotPickerSheet
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            initialSlot={selectedSlot}
+            onSelect={setSelectedSlot}
+          />
 
           <StickyBottomBar
             totalPrice={summary ? summary.total.amount / 100 : 0}
             priceLabel={summary ? formatPrice(summary.total) : '—'}
             serviceCount={selected.length}
-            ctaLabel={placeOrder.isPending ? 'Placing…' : 'Place order'}
-            disabled={!summary || couponRejected || placeOrder.isPending}
-            onCtaClick={() => void handlePlaceOrder()}
+            ctaLabel={createBooking.isPending ? 'Placing…' : 'Place order'}
+            disabled={!summary || couponRejected || createBooking.isPending}
+            onCtaClick={() => void handlePlaceBooking()}
           />
         </>
       )}

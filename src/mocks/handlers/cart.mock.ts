@@ -1,33 +1,14 @@
 import { fail, MockError, ok, registerMock } from '../lib/mockEngine';
-import type { MockRequest } from '../lib/mockEngine';
 import { seedCoupons } from '../data/cart.data';
 import { seedServices } from '../data/services.data';
-import {
-  checkoutSummaryRequestSchema,
-  placeOrderRequestSchema,
-} from '../../features/cart/types/cart.schema';
-import type {
-  CartItem,
-  CartLineInput,
-  Coupon,
-  Order,
-  PaymentSummary,
-} from '../../features/cart/types/cart';
+import { checkoutSummaryRequestSchema } from '../../features/cart/types/cart.schema';
+import type { CartLineInput, Coupon, PaymentSummary } from '../../features/cart/types/cart';
 import type { ApiErrorDetail } from '../../types/api';
 
 const TAX_RATE_PERCENT = 18;
 
 function toValidationDetails(issues: { path: PropertyKey[]; message: string }[]): ApiErrorDetail[] {
   return issues.map((issue) => ({ field: issue.path.join('.'), message: issue.message }));
-}
-
-/** Lightweight access-token check — mirrors the auth.mock guard (order needs a logged-in user). */
-function requireAuth(req: MockRequest, path: string): void {
-  const token = req.authorization?.replace(/^Bearer\s+/i, '');
-  const [prefix, userId, expiresAt] = (token ?? '').split('.');
-  if (prefix !== 'mock-access' || !userId || Number(expiresAt) < Date.now()) {
-    throw new MockError(fail(401, 'UNAUTHORIZED', 'Please log in to place your order.', path));
-  }
 }
 
 function rupees(minor: number): string {
@@ -152,47 +133,6 @@ registerMock('POST', '/checkout/summary', (req) => {
   return ok(priceCart(parsed.data.items, parsed.data.couponCode, path));
 });
 
-/* ── POST /orders ── */
-
-registerMock('POST', '/orders', (req) => {
-  const path = '/api/v1/orders';
-  requireAuth(req, path);
-
-  const parsed = placeOrderRequestSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return fail(
-      400,
-      'VALIDATION_ERROR',
-      'Request validation failed.',
-      path,
-      toValidationDetails(parsed.error.issues),
-    );
-  }
-
-  const { items, couponCode, addressId } = parsed.data;
-  const paymentSummary = priceCart(items, couponCode, path);
-
-  // priceCart already validated every serviceId exists, so the lookups below are safe.
-  const orderItems: CartItem[] = items.map((line) => {
-    const service = seedServices.find((candidate) => candidate.id === line.serviceId)!;
-    return {
-      serviceId: service.id,
-      service,
-      quantity: line.quantity,
-      selected: true,
-      lineTotal: { amount: service.price.amount * line.quantity, currency: service.price.currency },
-    };
-  });
-
-  const order: Order = {
-    id: crypto.randomUUID(),
-    referenceCode: makeReferenceCode(),
-    items: orderItems,
-    paymentSummary,
-    addressId,
-    status: 'PLACED',
-    createdAt: new Date().toISOString(),
-  };
-
-  return ok(order, 201);
-});
+// POST /orders was superseded by POST /bookings (booking.mock) — see contract change log.
+// Shared with booking.mock — POST /bookings prices its payload exactly like /checkout/summary.
+export { makeReferenceCode, priceCart, toValidationDetails };

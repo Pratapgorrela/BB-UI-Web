@@ -32,7 +32,7 @@
 | Auth | `LOCKED` | 2026-07-12 | F6 |
 | Service Catalog | `LOCKED` | 2026-07-13 | F3, F4, F5 |
 | Home & Promotions | `LOCKED` | 2026-07-13 | F3 |
-| Availability & Booking | `DRAFT` | — | F7, F8 |
+| Availability & Booking | `LOCKED` | 2026-07-13 | F7, F8 |
 | Profile & Addresses | `DRAFT` | — | F9 |
 | Reviews | `DRAFT` | — | F10 |
 | Notifications & Alerts | `DRAFT` | — | F11 |
@@ -223,29 +223,35 @@
 
 ---
 
-## F7 — Booking Flow
+## F7 — Booking Flow (integrated with checkout)
+
+> **Scope revised 2026-07-13 (user decision):** no standalone `/book` stepper — the original steps 72–86 predated Figma/F13. Scheduling integrates into checkout: "Add Slot" opens an in-app-designed date + time-slot picker (no Figma screen exists — brand language), a slot is required before placing the order, and `POST /bookings` supersedes `POST /orders` so checkout creates a real scheduled Booking (F8 gets real data). Specialists are system-assigned (no picker — matches Figma). The old step 73 (lock Profile & Addresses) is consciously dropped — checkout keeps the interim `checkoutAddresses` until F9.
 
 | Step | Task | Status |
 |---|---|---|
-| 72 | Lock Availability & Booking contract section | `[ ]` |
-| 73 | Lock Profile & Addresses contract section (for address selection) | `[ ]` |
-| 74 | Intel Report for F7 — wait for approval | `[ ]` |
-| 75 | Create TimeSlot, Booking, Address types + Zod schemas | `[ ]` |
-| 76 | Create mock data (time slots, addresses) + mock handlers (slot query, booking create) | `[ ]` |
-| 77 | Create booking API layer + React Query hooks | `[ ]` |
-| 78 | Create useBookingStore (Zustand — draft booking state across stepper steps) | `[ ]` |
-| 79 | Build BookingStepper component (4 steps: Service → Date & Time → Address → Confirm) | `[ ]` |
-| 80 | Build Step 1 — Service selection (pre-filled from detail page) | `[ ]` |
-| 81 | Build Step 2 — Date & Time (calendar + time slot pills) | `[ ]` |
-| 82 | Build Step 3 — Address (select existing or add new, RHF + Zod) | `[ ]` |
-| 83 | Build Step 4 — Confirm (summary, notes field, submit) | `[ ]` |
-| 84 | Build BookingConfirmationPage (success with reference code) | `[ ]` |
-| 85 | Handle SLOT_UNAVAILABLE error (409) — show message, redirect to time picker | `[ ]` |
-| 86 | 4 data states + responsive for all booking pages | `[ ]` |
+| 72 | Amend & lock Availability & Booking contract (capacity slots by date, Booking carries items, POST /bookings supersedes POST /orders) + change-log entries + this checklist rewrite | `[x]` |
+| 73 | Intel Report for F7 — wait for approval | `[x]` |
+| 74 | Create TimeSlot, Booking, Specialist types + Zod schemas (`src/features/booking/types/`) | `[x]` |
+| 75 | Create specialist seed data for auto-assignment (`src/mocks/data/specialists.data.ts`) | `[x]` |
+| 76 | Mock handlers: GET /time-slots (deterministic grid + scenario triggers) + POST /bookings (auth, pricing reuse, auto-assign, `bb-mock-bookings` persistence, 409) + shared `requireAuth` guard extraction | `[x]` |
+| 77 | Vitest integration tests for booking handlers (happy, 400, 401, 422, 409, persistence, seed↔schema integrity) | `[x]` |
+| 78 | Booking API layer + React Query hooks (`fetchTimeSlots`/`createBooking`, `bookingKeys`, `useFetchTimeSlots`, `useCreateBooking`) — no new store; slot selection is checkout-local state | `[x]` |
+| 79 | Build DateStrip component (next-14-days chips — first date-fns use) | `[x]` |
+| 80 | Build TimeSlotGrid component (morning/afternoon/evening pill groups, unavailable/selected states) | `[x]` |
+| 81 | Build SlotPickerSheet (reused Modal bottom sheet + DataState 4 states + confirm footer) | `[x]` |
+| 82 | Build SelectedSlotCard + integrate into CheckoutPage (replaces the dashed "Add slot" button; slot required before placing order) | `[x]` |
+| 83 | Swap order placement → `useCreateBooking`; SLOT_UNAVAILABLE 409 recovery (clear slot, refetch, reopen picker) | `[x]` |
+| 84 | BookingConfirmationPage (rename `/order-confirmation` → `/booking-confirmation`; reference, schedule, items, total, "View my bookings") | `[x]` |
+| 85 | Retire the superseded order path (Order type/schema, placeOrder API, usePlaceOrder, POST /orders handler + tests) and the `/book` placeholder (BookingFlowPage, route) | `[x]` |
+| 86 | 4 data states + responsive 375–1440 verification (Vitest suite + browser checks) | `[x]` |
+
+> **F7 complete (2026-07-13).** Scheduling integrated into checkout per the locked contract rewrite: **`POST /bookings` supersedes `POST /orders`** ({items, couponCode, addressId, timeSlotId, notes} → scheduled `Booking`, status PENDING), and the `Order` entity/type/schema/api/hook/handler/tests were fully retired along with the `/book` placeholder route + `BookingFlowPage`. **Slots are capacity-level hourly arrival windows** (09:00–18:00, 14-day horizon) queried by date only; slot ids deterministically encode date+time in a v4-shaped UUID so the mock resolves them without a registry; unavailability = capacity hash (~25%) + already-booked windows + today's past hours; bookings persist to localStorage **`bb-mock-bookings`** (lazy, guarded reads — Vitest runs in node) so F8 has real data across reloads and double-booking is visibly impossible. Specialists **auto-assigned** round-robin from new `specialists.data.ts` seed (4 records, schema-validated). Shared **`requireAuth` guard extracted** to `src/mocks/lib/guards.ts` (returns userId; cart.mock swapped to it); `priceCart`/`makeReferenceCode`/`toValidationDetails` exported from cart.mock and reused — booking pricing is byte-identical to `/checkout/summary`. New `src/features/booking/` slice (types → Zod → api → hooks → components → utils → barrel; no Zustand store — **slot selection is checkout-local `useState`** like coupon/address, deliberately not persisted). **Slot picker designed in-app** (no Figma screen — brand language): `SlotPickerSheet` in the reused `Modal` bottom sheet with `DateStrip` (14 day-chips, first **date-fns** use in the repo) + `TimeSlotGrid` (Morning/Afternoon/Evening pill groups, line-through unavailable, purple selected) + sticky Confirm footer; `SelectedSlotCard` on checkout replaces the F13 dashed "Add slot" toast button (dashed *(required)* affordance → filled card with formatted slot + est. duration + Change). **Slot required before placing** (toast + auto-open picker, CTA stays enabled — mirrors the address gate); **409 SLOT_UNAVAILABLE recovery** clears the stale selection, invalidates slot queries, and reopens the picker. `CheckoutItemsList` extracted to keep CheckoutPage under ~200 lines. `/order-confirmation` renamed **`/booking-confirmation`** (`BookingConfirmationPage`: reference, Scheduled for, est. duration, services, total, "View my bookings" → `/bookings`; history.state survives reload, stateless deep links get a graceful fallback). Verified: typecheck + `vite build` clean; **59/59 Vitest** (46 prior − 3 retired order tests + 13 new booking: slot grid shape/stability/determinism, 400s, scenario empty/error, past/horizon, 401, happy 201 priced-like-summary, coupon flow + 422, validation 400s ×4, 409 ×3 incl. double-book, persistence + window-turns-unavailable, seed↔schema); **46/46 browser checks** (scratchpad Playwright): full login→add→cart→checkout→slot→confirmation flow, required-gate toast + auto-open, Today default, skeleton/empty/error/success states, disabled+line-through unavailable pills, Escape/backdrop close, Change pre-selection, **real 409 race verified via a second tab sniping the slot** (toast + picker reopen + refetch shows window gone), cart cleared, `bb-mock-bookings` persistence, reload keeps confirmation + deep-link fallback, zero horizontal overflow @ 375/768/1024/1440 with sheet ≤480px centered on desktop, zero unexpected console errors; 3 screenshots captured. **Caveat:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config never created; Rule 10 package approval pending). **F8 hand-off:** list/detail/reschedule/cancel handlers + UI (contract LOCKED, reuse `SlotPickerSheet` for reschedule); real `Address` entity stays with F9 (checkout keeps interim `checkoutAddresses`).
 
 ---
 
 ## F8 — My Bookings
+
+> **F7 hand-off (2026-07-13):** `Booking` now carries `items[]` + `paymentSummary` (multi-service — booking cards should render the items snapshot); the reschedule UI (step 95) should reuse F7's `SlotPickerSheet`; F8 owns the mock handlers for `GET /bookings`, `GET /bookings/:id`, reschedule, and cancel (contract already LOCKED). Created bookings persist in localStorage `bb-mock-bookings`.
 
 | Step | Task | Status |
 |---|---|---|
@@ -420,7 +426,7 @@
 | F4 — Catalog | 11 | 11 | `[x]` Complete |
 | F5 — Details | 7 | 7 | `[x]` Complete |
 | F6 — Auth | 11 | 11 | `[x]` Complete |
-| F7 — Booking | 15 | 0 | `[ ]` Not started |
+| F7 — Booking (integrated checkout) | 15 | 15 | `[x]` Complete |
 | F8 — My Bookings | 10 | 0 | `[ ]` Not started |
 | F9 — Profile | 8 | 0 | `[ ]` Not started |
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
@@ -431,7 +437,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **88** | **53%** |
+| **TOTAL** | **166** | **103** | **62%** |
 
 ---
 

@@ -339,6 +339,11 @@
 | 137 | Build PaymentSummaryCard component (expandable breakdown) | `[x]` |
 | 138 | Build cart icon with badge count (integrate into Home header — per Figma) | `[x]` |
 | 139 | 4 data states + responsive | `[x]` |
+| 139a | Addendum: service details bottom sheet on category pages — `ServiceDetailSheet` in reused `Modal` (hero + purple discount badge, strikethrough price, duration, description, floating + → ✓ cart toggle; per user mockups) | `[x]` |
+| 139b | Addendum: URL-driven sheet state — `?service=<id>` via `useServiceSheetParam`; browser/Android back closes, deep links restore, scroll preserved | `[x]` |
+| 139c | Addendum: "Plan includes" / "Recommended" mini-cards with Add⟷Added toggles (shared `deriveServiceRelations`) + promo banner | `[x]` |
+| 139d | Addendum: sticky cart summary bar (page-level fixed + in-sheet sticky) — badge, "{first} +N more" subtitle, duration, Continue → `/cart` | `[x]` |
+| 139e | Addendum: entrance animations (`--animate-*` @theme tokens), Modal z-index fix, verification — 49/49 Vitest + 49/49 browser checks, responsive, reduced motion | `[x]` |
 
 > **F13 complete (2026-07-13).** New **LOCKED "Cart & Checkout" contract section** (Rule 1): `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities + `GET /coupons`, `POST /checkout/summary`, `POST /orders`. **Hybrid state model** (user decision): the cart is client-state in a persisted `useCartStore` (`bb-cart` — guest-friendly, survives refresh, `addItem`/`removeItem`/`updateQuantity`/`toggleSelected`/`clearCart` + `cartItemCount`/`cartSubtotal`/`selectedCartItems`/`cartSelectedDuration` selectors); coupons + payment math are **server-authoritative** via the mock (`priceCart` recomputes serviceCharges from seed, applies PERCENT/FLAT coupons with `minSubtotal`/`maxDiscount`, 18% GST). New `src/features/cart/` feature (types → Zod → api → hooks → components → barrel) + `src/mocks/{data/cart.data.ts (4 coupons), handlers/cart.mock.ts}`. **Checkout terminates at a mock order** (user decision): `POST /orders` (auth-guarded, mirrors the auth token guard) returns an `Order` with a `BB-YYYYMMDD-XXXX` reference; scheduling ("Add Slot") is **deferred to F7** with a toast. Pages: `CartPage` (`/cart`, guest-allowed), `CheckoutPage` (`/checkout`, inside `<ProtectedRoute>`), `OrderConfirmationPage` (`/order-confirmation`). **Activated every dead "add to cart" button** — Home combos, `ServiceDetailPage` (sticky + recommended), `CategoryDetailPage` rows now call `useCartStore.addItem` with a success toast; `HomeHeader` cart icon → `/cart` with live badge (wired from `HomePage`); **new cart icon + badge added to desktop `TopNav`** (had none). **Reused** `StickyBottomBar` (+ small backward-compatible `priceLabel` prop for ₹ output — mirrors the F5 approach), `Card`, `Button`, `DiscountBadge`, `TextInput`, `Avatar`, `DataState`, `Skeleton`, `useToast`, `formatPrice`/`formatDuration`. **New components:** `CartItemCard`, `PaymentSummaryCard` (expandable), `CouponSection`, `AddressSelect`. Coupon rejection is handled without `useEffect` — the summary is a `keepPreviousData` query, so a bad coupon shows an inline error while the last good breakdown stays on screen; Place order is disabled until it's fixed. **Addresses are interim** (`checkoutAddresses` static list) pending F9 (Profile & Addresses, DRAFT) — hand-off noted in the file. Verified: typecheck + `vite build` clean; **45/45 Vitest** (30 existing + 15 new cart: coupon list happy/`scenario=empty`/`error`, summary math + FLAT/capped-PERCENT coupons + `minSubtotal` 422 + unknown coupon/service 400 + empty-items 400, order 401-without-token/201-with-token/coupon-through-order, seed↔schema integrity); **29/29 browser checks** (scratchpad Playwright) covering add-from-Home→badge, cart select/qty/empty states, guest→/login redirect, authenticated checkout, FLAT100 apply + BIG50 gated-rejection, place order→confirmation with reference code, cart cleared, `[Cart]`-prefixed handled-error logging on the deliberate rejection, zero unexpected console errors, zero horizontal overflow @ 375/768/1024/1440, desktop TopNav cart link. Screenshots captured (cart/checkout/confirmation). **Caveat:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config never created; Rule 10 package approval pending). Imagery stays picsum until real assets drop into the same `imageUrl` fields.
 
@@ -421,12 +426,12 @@
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
 | F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
-| F13 — Cart & Checkout | 11 | 11 | `[x]` Complete |
+| F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
 | F14 — Search | 5 | 0 | `[ ]` Not started |
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **83** | **52%** |
+| **TOTAL** | **166** | **88** | **53%** |
 
 ---
 

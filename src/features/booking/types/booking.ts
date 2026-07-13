@@ -1,3 +1,4 @@
+import type { Pagination } from '../../../types/api';
 import type { CartItem, CheckoutSummaryRequest, PaymentSummary } from '../../cart/types/cart';
 
 /**
@@ -62,4 +63,56 @@ interface CreateBookingRequest extends CheckoutSummaryRequest {
   notes?: string | null;
 }
 
-export type { Booking, BookingStatus, CreateBookingRequest, Specialist, TimeSlot };
+/**
+ * Interim address shape expanded on `GET /bookings/:id` — structurally matches
+ * the checkout's `CheckoutAddress`. F9 (Profile & Addresses) owns the real
+ * `Address` entity; when it lands, only the data source changes, not this shape.
+ */
+interface BookingAddress {
+  id: string;
+  label: string;
+  line: string;
+}
+
+/** `GET /bookings/:id` — the booking with its specialist + address expanded. */
+interface BookingDetail extends Booking {
+  specialist: Specialist;
+  address: BookingAddress;
+}
+
+/** `GET /bookings` query — status is ANDed with the caller's own bookings. */
+interface BookingListFilters {
+  status?: BookingStatus[];
+  page?: number;
+  limit?: number;
+}
+
+/** Unwrapped `GET /bookings` page (mirrors the catalog's `ServicesPage`). */
+interface BookingsPage {
+  bookings: Booking[];
+  pagination: Pagination;
+}
+
+/** `PATCH /bookings/:id/reschedule` */
+interface RescheduleBookingRequest {
+  timeSlotId: string;
+}
+
+/** `PATCH /bookings/:id/cancel` */
+interface CancelBookingRequest {
+  cancellationReason: string;
+}
+
+export type {
+  Booking,
+  BookingAddress,
+  BookingDetail,
+  BookingListFilters,
+  BookingsPage,
+  BookingStatus,
+  CancelBookingRequest,
+  CreateBookingRequest,
+  RescheduleBookingRequest,
+  Specialist,
+  TimeSlot,
+};

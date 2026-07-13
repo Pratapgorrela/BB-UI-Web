@@ -54,6 +54,17 @@ const bookingSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
+const bookingAddressSchema = z.object({
+  id: z.uuid(),
+  label: z.string().min(1),
+  line: z.string().min(1),
+});
+
+const bookingDetailSchema = bookingSchema.extend({
+  specialist: specialistSchema,
+  address: bookingAddressSchema,
+});
+
 /* ── Request schemas (validate handler bodies / query params) ── */
 
 const timeSlotsQuerySchema = z.object({
@@ -66,11 +77,44 @@ const createBookingRequestSchema = checkoutSummaryRequestSchema.extend({
   notes: z.string().max(500).nullable().optional(),
 });
 
+const bookingsListQuerySchema = z.object({
+  status: z
+    .string()
+    .transform((value) => value.split(','))
+    .pipe(z.array(bookingStatusSchema))
+    .optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+});
+
+const rescheduleBookingRequestSchema = z.object({
+  timeSlotId: z.uuid(),
+});
+
+const cancelBookingRequestSchema = z.object({
+  cancellationReason: z.string().trim().min(1).max(500),
+});
+
+/** Client-side cancel form — stricter than the API so users give a real reason. */
+const cancelBookingFormSchema = z.object({
+  cancellationReason: z
+    .string()
+    .trim()
+    .min(5, 'Please tell us why (at least 5 characters).')
+    .max(500, 'Please keep it under 500 characters.'),
+});
+
 export {
+  bookingAddressSchema,
+  bookingDetailSchema,
   bookingSchema,
+  bookingsListQuerySchema,
   bookingStatusSchema,
+  cancelBookingFormSchema,
+  cancelBookingRequestSchema,
   createBookingRequestSchema,
   isoDateSchema,
+  rescheduleBookingRequestSchema,
   specialistSchema,
   timeSlotSchema,
   timeSlotsQuerySchema,

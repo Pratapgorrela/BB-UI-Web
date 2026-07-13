@@ -9,6 +9,12 @@ interface StickyBottomBarProps {
   ctaLabel?: string;
   onCtaClick: () => void;
   currency?: string;
+  /** Pre-formatted price (e.g. `formatPrice(...)` → "₹1,299"); overrides currency + totalPrice display. */
+  priceLabel?: string;
+  /** Replaces the "{N} Service(s)" caption text; duration still appends after "·". */
+  subtitle?: string;
+  /** 'fixed' pins to the viewport (default); 'sticky' sticks inside a scroll container (e.g. a bottom sheet). */
+  position?: 'fixed' | 'sticky';
   disabled?: boolean;
   className?: string;
   children?: ReactNode;
@@ -21,13 +27,17 @@ function StickyBottomBar({
   ctaLabel = 'Continue',
   onCtaClick,
   currency = 'INR',
+  priceLabel,
+  subtitle,
+  position = 'fixed',
   disabled = false,
   className = '',
 }: StickyBottomBarProps) {
   return (
     <div
       className={[
-        'fixed bottom-0 left-0 right-0 z-(--z-sticky)',
+        position === 'sticky' ? 'sticky bottom-0 w-full' : 'fixed bottom-0 left-0 right-0',
+        'z-(--z-sticky)',
         'bg-neutral-0 border-t border-neutral-300 shadow-lg',
         'h-booking-cta px-4',
         'flex items-center gap-4',
@@ -49,10 +59,10 @@ function StickyBottomBar({
       {/* Price & info */}
       <div className="flex-1 min-w-0">
         <p className="text-body font-bold text-neutral-800">
-          {currency} {totalPrice.toLocaleString('en-IN')}
+          {priceLabel ?? `${currency} ${totalPrice.toLocaleString('en-IN')}`}
         </p>
         <p className="text-caption text-neutral-500 truncate">
-          {serviceCount} {serviceCount === 1 ? 'Service' : 'Services'}
+          {subtitle ?? `${serviceCount} ${serviceCount === 1 ? 'Service' : 'Services'}`}
           {duration && ` \u00B7 ${duration}`}
         </p>
       </div>

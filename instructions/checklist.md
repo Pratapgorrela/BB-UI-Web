@@ -36,7 +36,7 @@
 | Profile & Addresses | `DRAFT` | — | F9 |
 | Reviews | `DRAFT` | — | F10 |
 | Notifications & Alerts | `DRAFT` | — | F11 |
-| Cart & Checkout | `DRAFT` | — | F13 |
+| Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
 | Help & Support | `DRAFT` | — | F16 |
 
 ---
@@ -328,17 +328,26 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 129 | Add Cart & Checkout contract section to contract.md | `[ ]` |
-| 130 | Intel Report for F13 — wait for approval | `[ ]` |
-| 131 | Create Cart, CartItem, PaymentSummary types + Zod schemas | `[ ]` |
-| 132 | Create mock data (cart items, coupons, payment breakdown) + mock handlers | `[ ]` |
-| 133 | Create cart API layer + React Query hooks | `[ ]` |
-| 134 | Create useCartStore (Zustand — items, add/remove/update, total calculation) | `[ ]` |
-| 135 | Build CartPage — item cards with checkbox, image, name, category, duration, price, delete, "+ Add Service" button, sticky bottom CTA (per Figma) | `[ ]` |
-| 136 | Build CheckoutPage — user info, cart summary, "Offers & Coupons" section, payment breakdown (Services Charges, Taxes, Total), saved addresses with radio select, "Add Slot" CTA (per Figma) | `[ ]` |
-| 137 | Build PaymentSummaryCard component (expandable breakdown) | `[ ]` |
-| 138 | Build cart icon with badge count (integrate into Home header — per Figma) | `[ ]` |
-| 139 | 4 data states + responsive | `[ ]` |
+| 129 | Add Cart & Checkout contract section to contract.md | `[x]` |
+| 130 | Intel Report for F13 — wait for approval | `[x]` |
+| 131 | Create Cart, CartItem, PaymentSummary types + Zod schemas | `[x]` |
+| 132 | Create mock data (cart items, coupons, payment breakdown) + mock handlers | `[x]` |
+| 133 | Create cart API layer + React Query hooks | `[x]` |
+| 134 | Create useCartStore (Zustand — items, add/remove/update, total calculation) | `[x]` |
+| 135 | Build CartPage — item cards with checkbox, image, name, category, duration, price, delete, "+ Add Service" button, sticky bottom CTA (per Figma) | `[x]` |
+| 136 | Build CheckoutPage — user info, cart summary, "Offers & Coupons" section, payment breakdown (Services Charges, Taxes, Total), saved addresses with radio select, "Add Slot" CTA (per Figma) | `[x]` |
+| 137 | Build PaymentSummaryCard component (expandable breakdown) | `[x]` |
+| 138 | Build cart icon with badge count (integrate into Home header — per Figma) | `[x]` |
+| 139 | 4 data states + responsive | `[x]` |
+| 139a | Addendum: service details bottom sheet on category pages — `ServiceDetailSheet` in reused `Modal` (hero + purple discount badge, strikethrough price, duration, description, floating + → ✓ cart toggle; per user mockups) | `[x]` |
+| 139b | Addendum: URL-driven sheet state — `?service=<id>` via `useServiceSheetParam`; browser/Android back closes, deep links restore, scroll preserved | `[x]` |
+| 139c | Addendum: "Plan includes" / "Recommended" mini-cards with Add⟷Added toggles (shared `deriveServiceRelations`) + promo banner | `[x]` |
+| 139d | Addendum: sticky cart summary bar (page-level fixed + in-sheet sticky) — badge, "{first} +N more" subtitle, duration, Continue → `/cart` | `[x]` |
+| 139e | Addendum: entrance animations (`--animate-*` @theme tokens), Modal z-index fix, verification — 49/49 Vitest + 49/49 browser checks, responsive, reduced motion | `[x]` |
+
+> **F13 complete (2026-07-13).** New **LOCKED "Cart & Checkout" contract section** (Rule 1): `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities + `GET /coupons`, `POST /checkout/summary`, `POST /orders`. **Hybrid state model** (user decision): the cart is client-state in a persisted `useCartStore` (`bb-cart` — guest-friendly, survives refresh, `addItem`/`removeItem`/`updateQuantity`/`toggleSelected`/`clearCart` + `cartItemCount`/`cartSubtotal`/`selectedCartItems`/`cartSelectedDuration` selectors); coupons + payment math are **server-authoritative** via the mock (`priceCart` recomputes serviceCharges from seed, applies PERCENT/FLAT coupons with `minSubtotal`/`maxDiscount`, 18% GST). New `src/features/cart/` feature (types → Zod → api → hooks → components → barrel) + `src/mocks/{data/cart.data.ts (4 coupons), handlers/cart.mock.ts}`. **Checkout terminates at a mock order** (user decision): `POST /orders` (auth-guarded, mirrors the auth token guard) returns an `Order` with a `BB-YYYYMMDD-XXXX` reference; scheduling ("Add Slot") is **deferred to F7** with a toast. Pages: `CartPage` (`/cart`, guest-allowed), `CheckoutPage` (`/checkout`, inside `<ProtectedRoute>`), `OrderConfirmationPage` (`/order-confirmation`). **Activated every dead "add to cart" button** — Home combos, `ServiceDetailPage` (sticky + recommended), `CategoryDetailPage` rows now call `useCartStore.addItem` with a success toast; `HomeHeader` cart icon → `/cart` with live badge (wired from `HomePage`); **new cart icon + badge added to desktop `TopNav`** (had none). **Reused** `StickyBottomBar` (+ small backward-compatible `priceLabel` prop for ₹ output — mirrors the F5 approach), `Card`, `Button`, `DiscountBadge`, `TextInput`, `Avatar`, `DataState`, `Skeleton`, `useToast`, `formatPrice`/`formatDuration`. **New components:** `CartItemCard`, `PaymentSummaryCard` (expandable), `CouponSection`, `AddressSelect`. Coupon rejection is handled without `useEffect` — the summary is a `keepPreviousData` query, so a bad coupon shows an inline error while the last good breakdown stays on screen; Place order is disabled until it's fixed. **Addresses are interim** (`checkoutAddresses` static list) pending F9 (Profile & Addresses, DRAFT) — hand-off noted in the file. Verified: typecheck + `vite build` clean; **45/45 Vitest** (30 existing + 15 new cart: coupon list happy/`scenario=empty`/`error`, summary math + FLAT/capped-PERCENT coupons + `minSubtotal` 422 + unknown coupon/service 400 + empty-items 400, order 401-without-token/201-with-token/coupon-through-order, seed↔schema integrity); **29/29 browser checks** (scratchpad Playwright) covering add-from-Home→badge, cart select/qty/empty states, guest→/login redirect, authenticated checkout, FLAT100 apply + BIG50 gated-rejection, place order→confirmation with reference code, cart cleared, `[Cart]`-prefixed handled-error logging on the deliberate rejection, zero unexpected console errors, zero horizontal overflow @ 375/768/1024/1440, desktop TopNav cart link. Screenshots captured (cart/checkout/confirmation). **Caveat:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config never created; Rule 10 package approval pending). Imagery stays picsum until real assets drop into the same `imageUrl` fields.
+
+> **F13 addendum — details bottom sheet + sticky cart bar (2026-07-13, per the user's Figma popup mockups + BB.mp4 gap analysis; client-only, contract untouched).** Category rows (`/categories/:slug`) now open the service's **full details in a bottom sheet** instead of navigating: new `ServiceDetailSheet` (hero with overlaid purple `DiscountBadge` — new backward-compatible `variant` pass-through —, strikethrough price row, `Duration - {x}` line, description with floating **+ → purple ✓ toggle** [user decision: tapping ✓ removes], combo "Plan includes" / single "Recommended" labeled-thumbnail mini-cards with Add⟷Added toggles, static "Self-Care Sundays" promo banner) rendered in the reused `Modal` (new backward-compatible `padded={false}` + `ariaLabel` props + the app's **first real entrance animations**: `--animate-fade-in`/`--animate-slide-up`/`--animate-rise` `@theme` tokens per design.md's spring spec; **fixed latent Modal bug**: root `z-modal` was a no-op class in this Tailwind v4 setup → `z-(--z-modal)`). Sheet state is **URL-driven** (`?service=<id>` via new `useServiceSheetParam` hook — first `useSearchParams` use in the app): browser/Android **back closes the sheet**, deep links restore it; opening pushes `state.sheet` so close = `navigate(-1)` in-app or replace-clear on deep links, with `preventScrollReset`. **Sticky cart summary bar** (reused `StickyBottomBar` + new backward-compatible `subtitle` / `position: 'sticky'` props) appears whenever the cart is non-empty: a page-level fixed bar (`animate-rise`) AND a `position="sticky"` instance inside the sheet (a11y: the bar must live inside the `aria-modal` dialog to stay reachable); badge = `cartItemCount`, subtitle = `"{first} +N more"`, Continue → `/cart`. Extracted `deriveServiceRelations` into `features/service-catalog/utils/` (now shared with `ServiceDetailPage` — behavior identical) + new pure `isInCart` selector in `useCartStore`. Row "+" quick-add is unchanged (inline qty stepper = remaining video gap #2); Home and `/services/:id` are unchanged (user decision: popup on category pages only). Verified: typecheck + build clean, **49/49 Vitest** (45 + 4 new in `serviceRelations.test.ts`), **49/49 browser checks** (open/close via Escape/backdrop/back/deep-link/invalid-id, ✓ add/remove toggle, mini-card Added state, badge counts, Continue→cart, scroll preservation, responsive 375–1440 with no overflow, sheet ≤480px centered on desktop, reduced-motion, zero unexpected console errors) + 3 screenshots.
 
 ---
 
@@ -417,12 +426,12 @@
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
 | F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
-| F13 — Cart & Checkout | 11 | 0 | `[ ]` Not started |
+| F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
 | F14 — Search | 5 | 0 | `[ ]` Not started |
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **72** | **45%** |
+| **TOTAL** | **166** | **88** | **53%** |
 
 ---
 

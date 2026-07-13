@@ -1,9 +1,24 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, PackageOpen } from 'lucide-react';
-import { DataState, Skeleton, useToast } from '../components/ui';
-import { ServiceListItem, useFetchCategories, useFetchServices } from '../features/service-catalog';
+import { DataState, Modal, Skeleton, StickyBottomBar, useToast } from '../components/ui';
+import {
+  ServiceDetailSheet,
+  ServiceListItem,
+  useFetchCategories,
+  useFetchServices,
+  useServiceSheetParam,
+} from '../features/service-catalog';
 import type { Service } from '../features/service-catalog';
+import {
+  cartItemCount,
+  cartSelectedDuration,
+  cartSubtotal,
+  isInCart,
+  selectedCartItems,
+  useCartStore,
+} from '../store/useCartStore';
+import { formatDuration, formatPrice } from '../utils/format';
 
 interface ServiceSectionProps {
   title: string;
@@ -81,6 +96,10 @@ export function Component() {
   const navigate = useNavigate();
   const { addToast } = useToast();
 
+  const items = useCartStore((state) => state.items);
+  const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
+
   const categoriesQuery = useFetchCategories();
   const category = categoriesQuery.data?.find((candidate) => candidate.slug === slug);
 
@@ -93,16 +112,51 @@ export function Component() {
     { enabled: !!category },
   );
 
-  const handleOpen = useCallback(
+  const allServices = useMemo(
+    () => [...(combosQuery.data?.services ?? []), ...(singlesQuery.data?.services ?? [])],
+    [combosQuery.data, singlesQuery.data],
+  );
+  // URL-driven (?service=<id>): browser/Android back closes the sheet, deep links restore it.
+  const { sheetService, openSheet, closeSheet } = useServiceSheetParam(allServices);
+
+  const cartServiceIds = useMemo(() => new Set(items.map((item) => item.serviceId)), [items]);
+  const selected = selectedCartItems(items);
+  const subtotal = cartSubtotal(items);
+  const durationMinutes = cartSelectedDuration(items);
+  const showCartBar = items.length > 0;
+  const firstSelected = selected[0];
+  const cartBarProps = {
+    totalPrice: subtotal.amount / 100,
+    priceLabel: formatPrice(subtotal),
+    serviceCount: cartItemCount(items),
+    subtitle: firstSelected
+      ? `${firstSelected.service.name}${selected.length > 1 ? ` +${selected.length - 1} more` : ''}`
+      : undefined,
+    duration: durationMinutes > 0 ? formatDuration(durationMinutes) : undefined,
+    ctaLabel: 'Continue',
+    onCtaClick: () => void navigate('/cart'),
+  };
+
+  const handleAdd = useCallback(
     (service: Service) => {
-      void navigate(`/services/${service.id}`);
+      addItem(service);
+      addToast(`${service.name} added to cart`, 'success');
     },
-    [navigate],
+    [addItem, addToast],
   );
 
-  const handleAdd = useCallback(() => {
-    addToast('Cart is coming soon', 'info');
-  }, [addToast]);
+  const handleToggleCart = useCallback(
+    (service: Service) => {
+      if (isInCart(items, service.id)) {
+        removeItem(service.id);
+        addToast(`${service.name} removed from cart`, 'info');
+      } else {
+        addItem(service);
+        addToast(`${service.name} added to cart`, 'success');
+      }
+    },
+    [items, addItem, removeItem, addToast],
+  );
 
   return (
     <div className="min-h-dvh bg-neutral-0">
@@ -141,7 +195,14 @@ export function Component() {
               </button>
             </div>
 
-            <div className="relative -mt-6 rounded-t-xl bg-neutral-0 px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+            <div
+              className={[
+                'relative -mt-6 rounded-t-xl bg-neutral-0 px-5 pt-6',
+                showCartBar
+                  ? 'pb-[calc(env(safe-area-inset-bottom)+6.5rem)]'
+                  : 'pb-[calc(env(safe-area-inset-bottom)+2rem)]',
+              ].join(' ')}
+            >
               <header className="mb-5">
                 <h1 className="font-heading text-h3 font-bold text-neutral-900">{resolved.name}</h1>
                 <p className="mt-1 text-body-sm text-neutral-500">{resolved.description}</p>
@@ -152,14 +213,14 @@ export function Component() {
                   title="Combos"
                   query={combosQuery}
                   emptyMessage="No combos in this category yet"
-                  onOpen={handleOpen}
+                  onOpen={openSheet}
                   onAdd={handleAdd}
                 />
                 <ServiceSection
                   title="Single services"
                   query={singlesQuery}
                   emptyMessage="No individual services in this category yet"
-                  onOpen={handleOpen}
+                  onOpen={openSheet}
                   onAdd={handleAdd}
                 />
               </div>
@@ -167,6 +228,28 @@ export function Component() {
           </>
         )}
       </DataState>
+
+      {/* Details bottom sheet (Figma popup) */}
+      <Modal
+        open={!!sheetService}
+        onClose={closeSheet}
+        padded={false}
+        ariaLabel={sheetService?.name}
+      >
+        {sheetService && (
+          <ServiceDetailSheet
+            service={sheetService}
+            categoryServices={allServices}
+            cartServiceIds={cartServiceIds}
+            onToggleCart={handleToggleCart}
+            onExplore={() => void navigate('/services')}
+          />
+        )}
+        {showCartBar && <StickyBottomBar {...cartBarProps} position="sticky" />}
+      </Modal>
+
+      {/* Page-level cart summary; slides up when the first item lands in the cart */}
+      {showCartBar && <StickyBottomBar {...cartBarProps} className="animate-rise" />}
     </div>
   );
 }

@@ -9,15 +9,15 @@ import {
   useToast,
 } from '../components/ui';
 import {
+  deriveServiceRelations,
   ServiceListItem,
   useFetchService,
   useFetchServices,
 } from '../features/service-catalog';
 import type { Service } from '../features/service-catalog';
+import { useCartStore } from '../store/useCartStore';
 import { formatDuration, formatPrice } from '../utils/format';
 import { getApiError } from '../utils/apiError';
-
-const RECOMMENDED_LIMIT = 6;
 
 function ServiceDetailSkeleton() {
   return (
@@ -121,6 +121,8 @@ export function Component() {
   const navigate = useNavigate();
   const { addToast } = useToast();
 
+  const addItem = useCartStore((state) => state.addItem);
+
   const serviceQuery = useFetchService(id ?? '');
   const service = serviceQuery.data;
 
@@ -135,23 +137,10 @@ export function Component() {
     { enabled: !!service },
   );
 
-  const all = categoryServicesQuery.data?.services ?? [];
-  const byId = new Map(all.map((candidate) => [candidate.id, candidate]));
-  const included =
-    service?.type === 'COMBO'
-      ? service.includedServiceIds
-          .map((includedId) => byId.get(includedId))
-          .filter((item): item is Service => item != null)
-      : [];
-  const includedIds = new Set(service?.includedServiceIds ?? []);
-  const recommended = all
-    .filter(
-      (candidate) =>
-        candidate.id !== service?.id &&
-        candidate.type === 'SINGLE' &&
-        !includedIds.has(candidate.id),
-    )
-    .slice(0, RECOMMENDED_LIMIT);
+  const { included, recommended } = deriveServiceRelations(
+    service,
+    categoryServicesQuery.data?.services ?? [],
+  );
 
   const handleOpen = useCallback(
     (target: Service) => {
@@ -160,9 +149,13 @@ export function Component() {
     [navigate],
   );
 
-  const handleAdd = useCallback(() => {
-    addToast('Cart is coming soon', 'info');
-  }, [addToast]);
+  const handleAdd = useCallback(
+    (target: Service) => {
+      addItem(target);
+      addToast(`${target.name} added to cart`, 'success');
+    },
+    [addItem, addToast],
+  );
 
   return (
     <div className="min-h-dvh bg-neutral-0">
@@ -210,7 +203,7 @@ export function Component() {
               duration={formatDuration(resolved.duration)}
               ctaLabel="Add to cart"
               currency={resolved.price.currency}
-              onCtaClick={handleAdd}
+              onCtaClick={() => handleAdd(resolved)}
             />
           </>
         )}

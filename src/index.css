@@ -136,6 +136,23 @@
   --ease-slow: ease-in-out;
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
+  /* ── Animations (entrances; the reduced-motion block below zeroes these) ── */
+  --animate-fade-in: bb-fade-in var(--duration-slow) var(--ease-normal);
+  --animate-slide-up: bb-slide-up var(--duration-spring) var(--ease-spring);
+  --animate-rise: bb-slide-up var(--duration-normal) var(--ease-fast);
+
+  @keyframes bb-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes bb-slide-up {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
   /* ── Layout ── */
   --width-max: 1200px;
   --height-bottom-nav: 64px;

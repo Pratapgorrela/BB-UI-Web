@@ -4,16 +4,21 @@ import { MapPin, Star } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { Avatar, Card, DataState, SkeletonCard, useToast } from '../components/ui';
 import { CheckoutItemsList, PaymentSummaryCard } from '../features/cart';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   BookingActions,
   BookingStatusBadge,
+  bookingKeys,
   CancelBookingModal,
   formatScheduledAt,
+  SlotPickerSheet,
   useCancelBooking,
   useFetchBooking,
+  useRescheduleBooking,
 } from '../features/booking';
-import type { BookingDetail } from '../features/booking';
+import type { BookingDetail, TimeSlot } from '../features/booking';
 import { useCartStore } from '../store/useCartStore';
+import { getApiError } from '../utils/apiError';
 import { formatDuration } from '../utils/format';
 
 function SummaryCard({ booking }: { booking: BookingDetail }) {
@@ -79,7 +84,10 @@ export function Component() {
   // Remounts PaymentSummaryCard with defaultOpen so "Payment summary" flips it open.
   const [summaryNonce, setSummaryNonce] = useState(0);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const cancelBooking = useCancelBooking();
+  const rescheduleBooking = useRescheduleBooking();
+  const queryClient = useQueryClient();
 
   async function handleCancelConfirm(cancellationReason: string) {
     if (!id) return;
@@ -90,6 +98,19 @@ export function Component() {
       // Toast comes from the hook; refetch so a raced 2h/status change updates the buttons.
       setCancelOpen(false);
       void query.refetch();
+    }
+  }
+
+  async function handleReschedule(slot: TimeSlot) {
+    if (!id) return;
+    try {
+      await rescheduleBooking.mutateAsync({ id, timeSlotId: slot.id });
+    } catch (error) {
+      // Toast is handled in useRescheduleBooking; recover the slot-taken race here.
+      if (getApiError(error)?.code === 'SLOT_UNAVAILABLE') {
+        void queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+        setPickerOpen(true);
+      }
     }
   }
 
@@ -141,7 +162,7 @@ export function Component() {
             <BookingActions
               booking={booking}
               onTrackVan={handleTrackVan}
-              onReschedule={() => addToast('Reschedule is coming in the next step.', 'info')}
+              onReschedule={() => setPickerOpen(true)}
               onRebook={() => handleRebook(booking)}
               onCancel={() => setCancelOpen(true)}
               onShowPaymentSummary={handleShowPaymentSummary}
@@ -163,6 +184,12 @@ export function Component() {
               booking={booking}
               onConfirm={(reason) => void handleCancelConfirm(reason)}
               isPending={cancelBooking.isPending}
+            />
+
+            <SlotPickerSheet
+              open={pickerOpen}
+              onClose={() => setPickerOpen(false)}
+              onSelect={(slot) => void handleReschedule(slot)}
             />
           </div>
         )}

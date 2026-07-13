@@ -28,3 +28,4 @@ export { CatalogPagination } from './components/CatalogPagination';
 export { CategoryCard } from './components/CategoryCard';
 export { CategoryFilterBar } from './components/CategoryFilterBar';
 export { ServiceCard } from './components/ServiceCard';
+export { ServiceListItem } from './components/ServiceListItem';

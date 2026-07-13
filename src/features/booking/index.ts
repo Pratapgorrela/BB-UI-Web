@@ -21,3 +21,17 @@ export { createBooking, fetchTimeSlots } from './api/bookingApi';
 export { bookingKeys, SLOTS_STALE_TIME_MS } from './hooks/keys';
 export { useFetchTimeSlots } from './hooks/useFetchTimeSlots';
 export { useCreateBooking } from './hooks/useCreateBooking';
+
+export {
+  dateFromIso,
+  formatScheduledAt,
+  formatSlotLabel,
+  formatSlotTime,
+  groupSlotsByPeriod,
+} from './utils/slotFormat';
+export type { SlotPeriodGroup } from './utils/slotFormat';
+
+export { DateStrip } from './components/DateStrip';
+export { TimeSlotGrid } from './components/TimeSlotGrid';
+export { SlotPickerSheet } from './components/SlotPickerSheet';
+export { SelectedSlotCard } from './components/SelectedSlotCard';

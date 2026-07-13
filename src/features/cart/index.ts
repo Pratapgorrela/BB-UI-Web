@@ -32,6 +32,7 @@ export { checkoutAddresses } from './data/checkoutAddresses';
 export type { CheckoutAddress } from './data/checkoutAddresses';
 
 export { CartItemCard } from './components/CartItemCard';
+export { CheckoutItemsList } from './components/CheckoutItemsList';
 export { PaymentSummaryCard } from './components/PaymentSummaryCard';
 export { CouponSection } from './components/CouponSection';
 export { AddressSelect } from './components/AddressSelect';

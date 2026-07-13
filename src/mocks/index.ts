@@ -6,6 +6,7 @@ import './handlers/auth.mock';
 import './handlers/booking.mock';
 import './handlers/cart.mock';
 import './handlers/catalog.mock';
+import './handlers/notifications.mock';
 import './handlers/profile.mock';
 import './handlers/promotions.mock';
 

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { NAV_ITEMS } from './navItems';
+import { NotificationBadge } from '../../features/notifications';
 
 function BottomNav() {
   return (
@@ -24,11 +25,16 @@ function BottomNav() {
             >
               {({ isActive }) => (
                 <>
-                  <item.icon
-                    size={24}
-                    aria-hidden="true"
-                    fill={isActive ? 'currentColor' : 'none'}
-                  />
+                  <span className="relative">
+                    <item.icon
+                      size={24}
+                      aria-hidden="true"
+                      fill={isActive ? 'currentColor' : 'none'}
+                    />
+                    {item.to === '/notifications' && (
+                      <NotificationBadge className="absolute -right-2 -top-1.5" />
+                    )}
+                  </span>
                   <span className="text-caption font-medium">{item.label}</span>
                 </>
               )}

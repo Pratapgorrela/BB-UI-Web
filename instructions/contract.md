@@ -249,6 +249,25 @@
 | referenceType | string | null | e.g., `"BOOKING"` |
 | createdAt | ISO 8601 | |
 
+> **Category (derived, not stored):** the Alerts feed's Bookings/Offers tabs map to
+> `type` groups — `BOOKING` = `BOOKING_CONFIRMED`/`BOOKING_REMINDER`/`BOOKING_CANCELLED`/`REVIEW_REQUEST`,
+> `OFFER` = `PROMO`.
+
+### NotificationSettings
+
+> Per-user notification preferences singleton backing the Notification Settings screen
+> (F11). Not a list. The mock returns all-`true` defaults when a user has never saved.
+
+| Field | Type | Notes |
+|---|---|---|
+| userId | UUID | FK → User (the owner) |
+| whatsappEnabled | boolean | WhatsApp updates opt-in ("Connect on WhatsApp" row) |
+| bookingUpdates | boolean | Booking status/reminder notifications |
+| servicePromotions | boolean | Promotional offers |
+| referralRewards | boolean | Referral reward notifications |
+| feedbackRequests | boolean | Post-service review/feedback requests |
+| updatedAt | ISO 8601 | |
+
 ### Offer
 
 > Home-screen promotional banner ("Offers for You"). Editorial/curated content — not tied to a Service.
@@ -577,12 +596,57 @@ Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resou
 
 ---
 
-### Notifications (Post-MVP) — `STATUS: DRAFT`
+### Notifications — `STATUS: LOCKED (2026-07-13)`
+
+> Backs F11 (Alerts feed + Notification Settings). All endpoints require auth (a caller
+> only ever sees/mutates their own notifications). The alerts feed has 3 tabs (All /
+> Bookings / Offers per Figma) — the `category` query param maps a tab to notification
+> types: `BOOKING` = `BOOKING_CONFIRMED`/`BOOKING_REMINDER`/`BOOKING_CANCELLED`/`REVIEW_REQUEST`,
+> `OFFER` = `PROMO`. Category is **derived from `type`** — it is not a stored entity field.
+> `NotificationSettings` is a per-user singleton (WhatsApp opt-in + 4 channel toggles); the
+> mock returns sensible defaults (all on) when a user has never saved settings.
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
-| GET | `/api/v1/notifications` | List user's notifications (paginated) | Yes |
+| GET | `/api/v1/notifications` | List user's notifications (paginated, `?category`) | Yes |
+| GET | `/api/v1/notifications/unread-count` | Unread count for the nav badge | Yes |
+| PATCH | `/api/v1/notifications/:id/read` | Mark one notification as read | Yes |
 | PATCH | `/api/v1/notifications/mark-all-read` | Mark all notifications as read | Yes |
+| DELETE | `/api/v1/notifications/:id` | Dismiss (remove) a notification | Yes |
+| GET | `/api/v1/notification-settings` | Get the user's notification preferences | Yes |
+| PATCH | `/api/v1/notification-settings` | Update notification preferences (partial) | Yes |
+
+**GET `/api/v1/notifications`** — Query params:
+- `category` (`BOOKING` | `OFFER`) — optional tab filter (omitted = all)
+- `page` (integer, default 1), `limit` (integer, default 20)
+
+Response: paginated envelope with `Notification[]` sorted by `createdAt` descending.
+Supports `?scenario=empty|error` for state testing.
+
+**GET `/api/v1/notifications/unread-count`** — Response: single-resource envelope with
+`{ count: integer }` (the caller's unread notifications).
+
+**PATCH `/api/v1/notifications/:id/read`** — Response: single-resource envelope with the
+updated `Notification` (`isRead: true`). `RESOURCE_NOT_FOUND` (404) when the id does not
+exist or belongs to another user. Idempotent (already-read stays read).
+
+**PATCH `/api/v1/notifications/mark-all-read`** — Response: single-resource envelope with
+`{ updated: integer }` (how many were flipped).
+
+**DELETE `/api/v1/notifications/:id`** — Response: single-resource envelope with `null`.
+`RESOURCE_NOT_FOUND` (404) when the id does not exist or belongs to another user.
+
+**GET `/api/v1/notification-settings`** — Response: single-resource envelope with a
+`NotificationSettings`.
+
+**PATCH `/api/v1/notification-settings`**
+```json
+// Request (partial — any subset)
+{ "whatsappEnabled": boolean, "bookingUpdates": boolean, "servicePromotions": boolean,
+  "referralRewards": boolean, "feedbackRequests": boolean }
+// Response: single-resource envelope with the updated NotificationSettings
+// Error: UNAUTHORIZED (401); VALIDATION_ERROR (400) on malformed fields
+```
 
 ---
 
@@ -597,6 +661,7 @@ Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resou
 | 2026-07-13 | Cart & Checkout | Added new section + `CartItem`, `Coupon`, `PaymentSummary`, `Order` entities and `GET /coupons`, `POST /checkout/summary`, `POST /orders`. Cart is client-state (persisted `useCartStore`); server owns coupons, pricing, and order placement. Scheduling deferred to F7. Section locked for F13 implementation | Claude |
 | 2026-07-13 | Availability & Booking | Rewritten for the integrated cart→checkout flow, then locked for F7/F8: TimeSlot is a capacity-level hourly arrival window queried by date only (specialistId removed — specialists are system-assigned at booking creation); Booking now carries `items: CartItem[]` + `paymentSummary` snapshots (multi-service), system-assigned `specialistId`, `referenceCode`, and `scheduledAt` derived from the slot; `POST /bookings` takes `{items, couponCode, addressId, timeSlotId, notes}` and supersedes `POST /orders`; `SLOT_UNAVAILABLE` (409) defined on create/reschedule; `GET /bookings` gains status filter + pagination detail | Claude |
 | 2026-07-13 | Cart & Checkout | `POST /orders` and the `Order` entity superseded by `POST /bookings` + the amended `Booking` — checkout now creates a scheduled booking directly, giving F8 real data. `GET /coupons` and `POST /checkout/summary` unchanged | Claude |
+| 2026-07-13 | Notifications | Section locked for F11. Added `NotificationSettings` entity (per-user singleton: `whatsappEnabled` + 4 channel toggles). Endpoints expanded from the 2-endpoint draft: `GET /notifications` gains a `category` (BOOKING/OFFER, derived from `type`) filter + pagination detail; added `GET /notifications/unread-count` (nav badge), `PATCH /notifications/:id/read`, `DELETE /notifications/:id` (dismiss), and `GET`/`PATCH /notification-settings`. No new stored fields on `Notification` — the tab category is derived from `type` | Claude |
 | 2026-07-13 | Profile & Addresses | Section locked for F9. No new fields — the drafted `Address` entity + 6 endpoints stand as-is. Clarifications added: `GET /profile` mirrors `/auth/me` (`User`); `GET /addresses` uses the single-resource envelope (`Address[]`, default first) with `?scenario=empty|error`; `isDefault` is exclusive (setting one unsets siblings); first address forced default; deleting the default promotes the next; delete blocked (422) when a PENDING/CONFIRMED booking references the address | Claude |
 
 ---

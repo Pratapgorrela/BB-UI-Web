@@ -9,8 +9,8 @@ export function Component() {
   return (
     <div className="flex flex-col gap-6 py-6">
       <header>
-        <h1 className="font-heading text-h1 font-bold text-neutral-800">Our Services</h1>
-        <p className="text-body text-neutral-600">
+        <h1 className="font-heading text-h2 font-bold text-neutral-800">Our Services</h1>
+        <p className="text-body-sm text-neutral-600">
           Choose from a wide range of beauty & wellness treatments.
         </p>
       </header>

@@ -7,3 +7,6 @@ export const bookingKeys = {
 
 /** Slot availability is time-sensitive — keep it fresh. */
 export const SLOTS_STALE_TIME_MS = 60 * 1000;
+
+/** Bookings change via cancel/reschedule — short cache, invalidated on mutation. */
+export const BOOKINGS_STALE_TIME_MS = 30 * 1000;

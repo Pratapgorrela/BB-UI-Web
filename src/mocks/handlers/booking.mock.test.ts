@@ -5,14 +5,22 @@ import './booking.mock';
 import { seedServices } from '../data/services.data';
 import { seedSpecialists } from '../data/specialists.data';
 import {
+  bookingDetailSchema,
   bookingSchema,
   specialistSchema,
   timeSlotSchema,
 } from '../../features/booking/types/booking.schema';
-import type { Booking, TimeSlot } from '../../features/booking/types/booking';
+import { seedBookings } from '../data/bookings.data';
+import { checkoutAddresses } from '../../features/cart/data/checkoutAddresses';
+import type {
+  Booking,
+  BookingDetail,
+  BookingStatus,
+  TimeSlot,
+} from '../../features/booking/types/booking';
 import type { PaymentSummary } from '../../features/cart/types/cart';
 import { seedCoupons } from '../data/cart.data';
-import type { ApiFailure, ApiSuccess } from '../../types/api';
+import type { ApiFailure, ApiPaginated, ApiSuccess } from '../../types/api';
 
 // Requests go through the real mock adapter — the exact path the app uses.
 const client = axios.create({ adapter: mockAdapter });
@@ -31,6 +39,30 @@ function validToken(): string {
 
 function authHeaders() {
   return { headers: { Authorization: `Bearer ${validToken()}` } };
+}
+
+function headersFor(userId: string) {
+  return { headers: { Authorization: `Bearer mock-access.${userId}.${Date.now() + 60_000}` } };
+}
+
+// Seed fixtures — Priya owns one booking per status; Rahul's proves scoping.
+const PRIYA_ID = seedBookings[0].userId;
+const rahulSeed = seedBookings.find((booking) => booking.userId !== PRIYA_ID)!;
+function priyaSeed(status: BookingStatus): Booking {
+  return seedBookings.find(
+    (booking) => booking.userId === PRIYA_ID && booking.status === status,
+  )!;
+}
+
+async function fetchBookingsList(
+  params: Record<string, string | number>,
+  userId: string = PRIYA_ID,
+): Promise<ApiPaginated<Booking>> {
+  const response = await client.get<ApiPaginated<Booking>>('/bookings', {
+    params,
+    ...headersFor(userId),
+  });
+  return response.data;
 }
 
 function pad2(value: number): string {
@@ -332,5 +364,318 @@ describe('POST /bookings', () => {
 
     const refreshed = await fetchSlots(TOMORROW);
     expect(refreshed.find((candidate) => candidate.id === slot.id)?.isAvailable).toBe(false);
+  });
+});
+
+describe('seed bookings integrity', () => {
+  it('every seed booking satisfies the contract schema', () => {
+    for (const booking of seedBookings) {
+      expect(() => bookingSchema.parse(booking)).not.toThrow();
+    }
+  });
+
+  it('covers every status for the primary user and references real seed records', () => {
+    const statuses: BookingStatus[] = [
+      'PENDING',
+      'CONFIRMED',
+      'IN_PROGRESS',
+      'COMPLETED',
+      'CANCELLED',
+    ];
+    for (const status of statuses) {
+      expect(priyaSeed(status)).toBeDefined();
+    }
+    const specialistIds = new Set(seedSpecialists.map((candidate) => candidate.id));
+    const addressIds = new Set(checkoutAddresses.map((candidate) => candidate.id));
+    for (const booking of seedBookings) {
+      expect(specialistIds.has(booking.specialistId)).toBe(true);
+      expect(addressIds.has(booking.addressId)).toBe(true);
+    }
+    expect(rahulSeed).toBeDefined();
+  });
+});
+
+describe('GET /bookings', () => {
+  it('rejects an unauthenticated request with 401', async () => {
+    await expectApiError(client.get('/bookings'), 401, 'UNAUTHORIZED');
+  });
+
+  it('returns only the callers bookings sorted by scheduledAt descending', async () => {
+    const body = await fetchBookingsList({ limit: 50 });
+    const ids = body.data.map((booking) => booking.id);
+
+    expect(body.data.length).toBeGreaterThanOrEqual(6);
+    expect(ids).not.toContain(rahulSeed.id);
+    for (const booking of body.data) {
+      expect(booking.userId).toBe(PRIYA_ID);
+      expect(() => bookingSchema.parse(booking)).not.toThrow();
+    }
+    const times = body.data.map((booking) => new Date(booking.scheduledAt).getTime());
+    expect(times).toEqual([...times].sort((a, b) => b - a));
+  });
+
+  it('filters by a single status and by a comma-separated list', async () => {
+    const completed = await fetchBookingsList({ status: 'COMPLETED', limit: 50 });
+    expect(completed.data.length).toBeGreaterThanOrEqual(2);
+    expect(completed.data.every((booking) => booking.status === 'COMPLETED')).toBe(true);
+
+    const upcoming = await fetchBookingsList({
+      status: 'PENDING,CONFIRMED,IN_PROGRESS',
+      limit: 50,
+    });
+    expect(upcoming.data.length).toBeGreaterThanOrEqual(3);
+    expect(
+      upcoming.data.every((booking) =>
+        ['PENDING', 'CONFIRMED', 'IN_PROGRESS'].includes(booking.status),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects an unknown status with 400 details', async () => {
+    await expectApiError(
+      client.get('/bookings', { params: { status: 'BOGUS' }, ...headersFor(PRIYA_ID) }),
+      400,
+      'VALIDATION_ERROR',
+    );
+  });
+
+  it('paginates with the standard envelope', async () => {
+    const firstPage = await fetchBookingsList({ limit: 2 });
+    expect(firstPage.data).toHaveLength(2);
+    expect(firstPage.pagination.limit).toBe(2);
+    expect(firstPage.pagination.totalItems).toBeGreaterThanOrEqual(6);
+    expect(firstPage.pagination.hasNextPage).toBe(true);
+    expect(firstPage.pagination.hasPreviousPage).toBe(false);
+
+    const secondPage = await fetchBookingsList({ limit: 2, page: 2 });
+    expect(secondPage.pagination.page).toBe(2);
+    expect(secondPage.data.map((booking) => booking.id)).not.toEqual(
+      firstPage.data.map((booking) => booking.id),
+    );
+  });
+
+  it('merges bookings created via POST /bookings with the seeds', async () => {
+    const slot = await firstAvailableSlot(TOMORROW);
+    const created = await client.post<ApiSuccess<Booking>>(
+      '/bookings',
+      bookingPayload({ timeSlotId: slot.id }),
+      headersFor(PRIYA_ID),
+    );
+
+    const body = await fetchBookingsList({ limit: 50 });
+    expect(body.data.map((booking) => booking.id)).toContain(created.data.data.id);
+  });
+
+  it('supports scenario=empty and scenario=error', async () => {
+    const empty = await fetchBookingsList({ scenario: 'empty' });
+    expect(empty.data).toEqual([]);
+    await expectApiError(
+      client.get('/bookings', { params: { scenario: 'error' }, ...headersFor(PRIYA_ID) }),
+      500,
+      'INTERNAL_ERROR',
+    );
+  });
+});
+
+describe('GET /bookings/:id', () => {
+  it('rejects an unauthenticated request with 401', async () => {
+    await expectApiError(client.get(`/bookings/${seedBookings[0].id}`), 401, 'UNAUTHORIZED');
+  });
+
+  it('returns 404 for unknown ids and for another users booking', async () => {
+    await expectApiError(
+      client.get(`/bookings/${crypto.randomUUID()}`, headersFor(PRIYA_ID)),
+      404,
+      'RESOURCE_NOT_FOUND',
+    );
+    await expectApiError(
+      client.get(`/bookings/${rahulSeed.id}`, headersFor(PRIYA_ID)),
+      404,
+      'RESOURCE_NOT_FOUND',
+    );
+  });
+
+  it('expands the assigned specialist and address on the owners booking', async () => {
+    const seed = priyaSeed('PENDING');
+    const response = await client.get<ApiSuccess<BookingDetail>>(
+      `/bookings/${seed.id}`,
+      headersFor(PRIYA_ID),
+    );
+    const detail = response.data.data;
+
+    expect(() => bookingDetailSchema.parse(detail)).not.toThrow();
+    expect(detail.specialist.id).toBe(seed.specialistId);
+    expect(detail.address.id).toBe(seed.addressId);
+    expect(detail.address.line.length).toBeGreaterThan(0);
+  });
+});
+
+describe('PATCH /bookings/:id/cancel', () => {
+  const reason = { cancellationReason: 'Plans changed for that day.' };
+
+  it('rejects unauthenticated, unknown, and cross-user requests', async () => {
+    const seed = priyaSeed('PENDING');
+    await expectApiError(client.patch(`/bookings/${seed.id}/cancel`, reason), 401, 'UNAUTHORIZED');
+    await expectApiError(
+      client.patch(`/bookings/${crypto.randomUUID()}/cancel`, reason, headersFor(PRIYA_ID)),
+      404,
+      'RESOURCE_NOT_FOUND',
+    );
+    await expectApiError(
+      client.patch(`/bookings/${rahulSeed.id}/cancel`, reason, headersFor(PRIYA_ID)),
+      404,
+      'RESOURCE_NOT_FOUND',
+    );
+  });
+
+  it('rejects an empty reason with 400 details', async () => {
+    const seed = priyaSeed('PENDING');
+    await expectApiError(
+      client.patch(`/bookings/${seed.id}/cancel`, { cancellationReason: '  ' }, headersFor(PRIYA_ID)),
+      400,
+      'VALIDATION_ERROR',
+    );
+  });
+
+  it('enforces the status rule with 422 for completed, cancelled, and in-progress bookings', async () => {
+    for (const status of ['COMPLETED', 'CANCELLED', 'IN_PROGRESS'] as const) {
+      await expectApiError(
+        client.patch(`/bookings/${priyaSeed(status).id}/cancel`, reason, headersFor(PRIYA_ID)),
+        422,
+        'BUSINESS_RULE_VIOLATION',
+      );
+    }
+  });
+
+  it('enforces the 2-hour rule with 422', async () => {
+    // The CONFIRMED seed is deliberately scheduled 90 minutes from now.
+    await expectApiError(
+      client.patch(`/bookings/${priyaSeed('CONFIRMED').id}/cancel`, reason, headersFor(PRIYA_ID)),
+      422,
+      'BUSINESS_RULE_VIOLATION',
+    );
+  });
+
+  it('cancels a modifiable booking and upserts the mutated copy to localStorage', async () => {
+    const seed = priyaSeed('PENDING');
+    const response = await client.patch<ApiSuccess<Booking>>(
+      `/bookings/${seed.id}/cancel`,
+      reason,
+      headersFor(PRIYA_ID),
+    );
+    const updated = response.data.data;
+
+    expect(updated.status).toBe('CANCELLED');
+    expect(updated.cancellationReason).toBe(reason.cancellationReason);
+    expect(new Date(updated.updatedAt).getTime()).toBeGreaterThan(
+      new Date(seed.updatedAt).getTime(),
+    );
+
+    // The seeds module itself is never mutated — localStorage wins on merge.
+    expect(seed.status).toBe('PENDING');
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as Booking[];
+    expect(stored.some((booking) => booking.id === seed.id && booking.status === 'CANCELLED')).toBe(
+      true,
+    );
+
+    const cancelledList = await fetchBookingsList({ status: 'CANCELLED', limit: 50 });
+    expect(cancelledList.data.map((booking) => booking.id)).toContain(seed.id);
+  });
+});
+
+describe('PATCH /bookings/:id/reschedule', () => {
+  it('rejects a malformed timeSlotId with 400 details', async () => {
+    const seed = priyaSeed('PENDING');
+    await expectApiError(
+      client.patch(
+        `/bookings/${seed.id}/reschedule`,
+        { timeSlotId: 'not-a-uuid' },
+        headersFor(PRIYA_ID),
+      ),
+      400,
+      'VALIDATION_ERROR',
+    );
+  });
+
+  it('enforces the status and 2-hour rules with 422', async () => {
+    const slot = await firstAvailableSlot(TOMORROW);
+    await expectApiError(
+      client.patch(
+        `/bookings/${priyaSeed('COMPLETED').id}/reschedule`,
+        { timeSlotId: slot.id },
+        headersFor(PRIYA_ID),
+      ),
+      422,
+      'BUSINESS_RULE_VIOLATION',
+    );
+    await expectApiError(
+      client.patch(
+        `/bookings/${priyaSeed('CONFIRMED').id}/reschedule`,
+        { timeSlotId: slot.id },
+        headersFor(PRIYA_ID),
+      ),
+      422,
+      'BUSINESS_RULE_VIOLATION',
+    );
+  });
+
+  it('returns 409 for exhausted slots and windows already booked by anyone', async () => {
+    const seed = priyaSeed('PENDING');
+    const exhausted = (await fetchSlots(TOMORROW)).find((candidate) => !candidate.isAvailable);
+    expect(exhausted).toBeDefined();
+    await expectApiError(
+      client.patch(
+        `/bookings/${seed.id}/reschedule`,
+        { timeSlotId: exhausted!.id },
+        headersFor(PRIYA_ID),
+      ),
+      409,
+      'SLOT_UNAVAILABLE',
+    );
+
+    const slot = await firstAvailableSlot(TOMORROW);
+    await client.post('/bookings', bookingPayload({ timeSlotId: slot.id }), authHeaders());
+    await expectApiError(
+      client.patch(
+        `/bookings/${seed.id}/reschedule`,
+        { timeSlotId: slot.id },
+        headersFor(PRIYA_ID),
+      ),
+      409,
+      'SLOT_UNAVAILABLE',
+    );
+  });
+
+  it('reschedules a modifiable booking, preserving status and swapping the windows', async () => {
+    const seed = priyaSeed('PENDING');
+    const target = await firstAvailableSlot(TOMORROW);
+    const response = await client.patch<ApiSuccess<Booking>>(
+      `/bookings/${seed.id}/reschedule`,
+      { timeSlotId: target.id },
+      headersFor(PRIYA_ID),
+    );
+    const updated = response.data.data;
+
+    const [year, month, day] = target.date.split('-').map(Number);
+    const hour = Number(target.startTime.slice(0, 2));
+    expect(new Date(updated.scheduledAt).getTime()).toBe(
+      new Date(year, month - 1, day, hour, 0, 0, 0).getTime(),
+    );
+    expect(updated.status).toBe('PENDING');
+
+    // New window is now taken; the old window frees up unless capacity-exhausted.
+    const newDaySlots = await fetchSlots(target.date);
+    expect(newDaySlots.find((candidate) => candidate.id === target.id)?.isAvailable).toBe(false);
+
+    const oldInstant = new Date(seed.scheduledAt);
+    const oldDateStr = `${oldInstant.getFullYear()}-${pad2(oldInstant.getMonth() + 1)}-${pad2(
+      oldInstant.getDate(),
+    )}`;
+    const oldSlots = await fetchSlots(oldDateStr);
+    const oldWindow = oldSlots.find(
+      (candidate) => Number(candidate.startTime.slice(0, 2)) === oldInstant.getHours(),
+    );
+    const expectedAvailable = (oldInstant.getDate() + oldInstant.getHours()) % 4 !== 0;
+    expect(oldWindow?.isAvailable).toBe(expectedAvailable);
   });
 });

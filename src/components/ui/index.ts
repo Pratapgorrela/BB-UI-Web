@@ -33,3 +33,6 @@ export type { StickyBottomBarProps } from './StickyBottomBar';
 
 export { DataState } from './DataState';
 export type { DataStateProps } from './DataState';
+
+export { Tabs } from './Tabs';
+export type { TabItem, TabsProps } from './Tabs';

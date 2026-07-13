@@ -35,7 +35,7 @@
 | Availability & Booking | `LOCKED` | 2026-07-13 | F7, F8 |
 | Profile & Addresses | `LOCKED` | 2026-07-13 | F9 |
 | Reviews | `DRAFT` | — | F10 |
-| Notifications & Alerts | `DRAFT` | — | F11 |
+| Notifications & Alerts | `LOCKED` | 2026-07-13 | F11 |
 | Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
 | Help & Support | `DRAFT` | — | F16 |
 
@@ -307,15 +307,17 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 114 | Lock Notifications contract section | `[ ]` |
-| 115 | Intel Report for F11 — wait for approval | `[ ]` |
-| 116 | Create Notification/Alert type + Zod schema | `[ ]` |
-| 117 | Create mock data + mock handlers (alert list with tabs, notification settings, mark-read, dismiss) | `[ ]` |
-| 118 | Create notification API layer + hooks | `[ ]` |
-| 119 | Build AlertsPage — 3 tabs: All / Bookings / Offers (per Figma), alert cards with image, text, dismiss X | `[ ]` |
-| 120 | Build unread count badge (integrate into bottom nav Alerts icon — per Figma) | `[ ]` |
-| 121 | Build NotificationSettingsPage — WhatsApp link, toggle switches for Booking Updates / Service Promotions / Referral Rewards / Feedback Requests (per Figma) | `[ ]` |
-| 122 | 4 data states + responsive | `[ ]` |
+| 114 | Lock Notifications contract section | `[x]` |
+| 115 | Intel Report for F11 — wait for approval | `[x]` |
+| 116 | Create Notification/Alert type + Zod schema | `[x]` |
+| 117 | Create mock data + mock handlers (alert list with tabs, notification settings, mark-read, dismiss) | `[x]` |
+| 118 | Create notification API layer + hooks | `[x]` |
+| 119 | Build AlertsPage — 3 tabs: All / Bookings / Offers (per Figma), alert cards with image, text, dismiss X | `[x]` |
+| 120 | Build unread count badge (integrate into bottom nav Alerts icon — per Figma) | `[x]` |
+| 121 | Build NotificationSettingsPage — WhatsApp link, toggle switches for Booking Updates / Service Promotions / Referral Rewards / Feedback Requests (per Figma) | `[x]` |
+| 122 | 4 data states + responsive | `[x]` |
+
+> **F11 complete (2026-07-13).** Alerts & Notification Settings per the now-**LOCKED** Notifications contract section (amended from the 2-endpoint draft, see change log). New `NotificationSettings` entity (per-user singleton: `whatsappEnabled` + 4 channel toggles); `GET /notifications` gained a `category` (BOOKING/OFFER — **derived from `type`**, not a stored field) filter + pagination; added `GET /notifications/unread-count`, `PATCH /notifications/:id/read`, `DELETE /notifications/:id` (dismiss), and `GET`/`PATCH /notification-settings`. **Mock layer:** new read-only [`seedNotifications`](../src/mocks/data/notifications.data.ts) (8 for Priya spanning all 5 types + both read states so all 3 tabs populate, 2 referencing real seed bookings via `referenceId`/`referenceType`; 1 for Rahul → per-user scoping) **merged over localStorage `bb-mock-notifications` with a tombstone set `bb-mock-notifications-deleted`** (read/dismiss/mark-all overlay without mutating the seed — the same seed+overlay+tombstone pattern as F8/F9); per-user settings override store `bb-mock-notif-settings` (GET returns all-on defaults, WhatsApp off, when unset). New [`notifications.mock`](../src/mocks/handlers/notifications.mock.ts) with all 7 handlers (auth-guarded, owned-or-404, `?scenario=empty|error`). **Feature slice** `src/features/notifications/` (types → Zod → api → 7 hooks → components → barrel): `useFetchNotifications` (keepPreviousData, 30s stale), `useUnreadNotificationCount` (enabled only when authed), `useMarkNotificationRead`/`useMarkAllNotificationsRead`/`useDismissNotification` (invalidate + `[Notifications]` logs), `useFetchNotificationSettings`/`useUpdateNotificationSettings` (optimistic toggle + rollback). **UI:** new `AlertCard` (per-type icon/colour, unread tint + dot, relative time via **date-fns `formatDistanceToNow`**, dismiss X) + `NotificationBadge` (unread pill, renders null at 0 / unauthed). **Pages:** [AlertsPage](../src/pages/AlertsPage.tsx) replaces the F6 `/notifications` placeholder — reused F8 `Tabs` (All/Bookings/Offers), URL-driven `?tab=`/`?page=`, per-tab empty states, Mark-all-read + Settings gear, tap → mark read (+ deep-link to `/bookings/:id` for booking refs), dismiss; [NotificationSettingsPage](../src/pages/NotificationSettingsPage.tsx) at `/notifications/settings` (reused F1 `Toggle`: WhatsApp opt-in card + 4 channel toggles, optimistic). **Nav:** unread badge wired into the bottom-nav Alerts (bell) icon (authed-only). **Reused** `Tabs`, `Toggle`, `Card`, `DataState`, `Button`, `PageHeader`, `useToast`, `getApiErrorMessage` — no new primitives, no new packages. Verified: `npm run typecheck` + `vite build` clean (AlertsPage lazy-chunked 3.69 kB); **129/129 Vitest** (110 prior + 19 new: seed↔schema integrity, list auth/scoping/category filters/400/pagination/scenarios, unread-count, per-item read + 404, mark-all, dismiss + persistence + 404, settings defaults/partial-patch-persist/400/401); dev server boots clean, `/notifications` + `/notifications/settings` serve 200. **Caveats:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config blocked on package approval per Rule 10); full browser walkthrough pending user testing (Playwright not a project dep this session); Figma 184:6968 (Alerts) + 184:7351 (Settings) not reachable (connector auth) — built to brand language, expect a possible design-revision pass like F4/F5/F9. WhatsApp is modeled as a `whatsappEnabled` opt-in toggle (no real integration). Desktop TopNav shows no Alerts entry (pre-existing — it lists only the first 3 nav items; Alerts is reached via the Profile menu link → `/notifications`).
 
 ---
 
@@ -436,14 +438,14 @@
 | F8 — My Bookings | 10 | 10 | `[x]` Complete |
 | F9 — Profile | 8 | 8 | `[x]` Complete |
 | F10 — Reviews | 9 | 0 | `[ ]` Not started |
-| F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
+| F11 — Alerts & Notif Settings | 9 | 9 | `[x]` Complete |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
 | F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
 | F14 — Search | 5 | 5 | `[x]` Complete |
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **126** | **76%** |
+| **TOTAL** | **166** | **135** | **81%** |
 
 ---
 

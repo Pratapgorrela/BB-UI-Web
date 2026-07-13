@@ -9,6 +9,7 @@ interface ServiceSectionProps {
   title: string;
   query: ReturnType<typeof useFetchServices>;
   emptyMessage: string;
+  onOpen: (service: Service) => void;
   onAdd: (service: Service) => void;
 }
 
@@ -28,10 +29,10 @@ function ServiceListSkeleton() {
   );
 }
 
-function ServiceSection({ title, query, emptyMessage, onAdd }: ServiceSectionProps) {
+function ServiceSection({ title, query, emptyMessage, onOpen, onAdd }: ServiceSectionProps) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="font-heading text-h3 font-semibold text-neutral-800">{title}</h2>
+      <h2 className="font-heading text-h4 font-semibold text-neutral-800">{title}</h2>
       <DataState
         data={query.data}
         isLoading={query.isLoading}
@@ -45,7 +46,12 @@ function ServiceSection({ title, query, emptyMessage, onAdd }: ServiceSectionPro
         {({ services }) => (
           <div className="divide-y divide-neutral-100">
             {services.map((service) => (
-              <ServiceListItem key={service.id} service={service} onAdd={onAdd} />
+              <ServiceListItem
+                key={service.id}
+                service={service}
+                onOpen={onOpen}
+                onAdd={onAdd}
+              />
             ))}
           </div>
         )}
@@ -58,7 +64,7 @@ function CategoryDetailSkeleton() {
   return (
     <div aria-hidden="true">
       <Skeleton variant="rectangle" className="h-60 w-full rounded-none" />
-      <div className="relative -mt-6 rounded-t-3xl bg-neutral-0 px-5 pt-6">
+      <div className="relative -mt-6 rounded-t-xl bg-neutral-0 px-5 pt-6">
         <Skeleton variant="line" width="55%" height="1.75rem" />
         <Skeleton variant="line" width="80%" className="mt-2" />
         <div className="mt-6 flex flex-col gap-6">
@@ -85,6 +91,13 @@ export function Component() {
   const singlesQuery = useFetchServices(
     { categoryId: category?.id, type: 'SINGLE', limit: 50 },
     { enabled: !!category },
+  );
+
+  const handleOpen = useCallback(
+    (service: Service) => {
+      void navigate(`/services/${service.id}`);
+    },
+    [navigate],
   );
 
   const handleAdd = useCallback(() => {
@@ -128,9 +141,9 @@ export function Component() {
               </button>
             </div>
 
-            <div className="relative -mt-6 rounded-t-3xl bg-neutral-0 px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+            <div className="relative -mt-6 rounded-t-xl bg-neutral-0 px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
               <header className="mb-5">
-                <h1 className="font-heading text-h2 font-bold text-neutral-900">{resolved.name}</h1>
+                <h1 className="font-heading text-h3 font-bold text-neutral-900">{resolved.name}</h1>
                 <p className="mt-1 text-body-sm text-neutral-500">{resolved.description}</p>
               </header>
 
@@ -139,12 +152,14 @@ export function Component() {
                   title="Combos"
                   query={combosQuery}
                   emptyMessage="No combos in this category yet"
+                  onOpen={handleOpen}
                   onAdd={handleAdd}
                 />
                 <ServiceSection
                   title="Single services"
                   query={singlesQuery}
                   emptyMessage="No individual services in this category yet"
+                  onOpen={handleOpen}
                   onAdd={handleAdd}
                 />
               </div>

@@ -75,3 +75,24 @@ registerMock('GET', '/services', (req) => {
 
   return paginated(results, filters.page ?? DEFAULT_PAGE, filters.limit ?? DEFAULT_LIMIT);
 });
+
+/* ── GET /services/:id ── */
+
+/** Reserved id that forces a 500 — mirrors the `FORCE_500` search convention above. */
+const FORCE_500_ID = 'FORCE_500';
+
+registerMock('GET', '/services/:id', (req) => {
+  const { id } = req.params;
+  const path = `/api/v1/services/${id}`;
+
+  if (id === FORCE_500_ID) {
+    return fail(500, 'INTERNAL_ERROR', 'Simulated server error. Please try again later.', path);
+  }
+
+  const service = seedServices.find((candidate) => candidate.id === id);
+  if (!service) {
+    return fail(404, 'RESOURCE_NOT_FOUND', 'Service not found.', path);
+  }
+
+  return ok(service);
+});

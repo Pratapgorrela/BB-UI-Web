@@ -184,13 +184,17 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 54 | Intel Report for F5 — wait for approval | `[ ]` |
-| 55 | Create mock data for service detail + recommended add-ons + mock handlers | `[ ]` |
-| 56 | Create API layer (fetchService) + hooks | `[ ]` |
-| 57 | Build ServiceDetailPage (large image, name, duration, price with strikethrough + discount badge, description, check icon, recommended add-ons — per Figma Sub Services) | `[ ]` |
-| 58 | Build "Recommended" add-ons section (image cards with "Add" button — per Figma) | `[ ]` |
-| 59 | Build sticky bottom CTA bar (cart icon + price + service count + duration + "Continue" button — per Figma) | `[ ]` |
-| 60 | 4 data states + responsive layout for service detail page | `[ ]` |
+| 54 | Intel Report for F5 — wait for approval | `[x]` |
+| 55 | Create mock data for service detail + recommended add-ons + mock handlers | `[x]` |
+| 56 | Create API layer (fetchService) + hooks | `[x]` |
+| 57 | Build ServiceDetailPage (large image, name, duration, price with strikethrough + discount badge, description, check icon, recommended add-ons — per Figma Sub Services) | `[x]` |
+| 58 | Build "Recommended" add-ons section (image cards with "Add" button — per Figma) | `[x]` |
+| 59 | Build sticky bottom CTA bar (cart icon + price + service count + duration + "Continue" button — per Figma) | `[x]` |
+| 60 | 4 data states + responsive layout for service detail page | `[x]` |
+
+> **F5 complete (2026-07-13).** `GET /services/:id` added to the LOCKED Service Catalog contract's mock layer (found → single-resource envelope; unknown id → 404 `RESOURCE_NOT_FOUND`; reserved id `FORCE_500` → 500, mirroring the `/services` search convention). New `fetchService(id)` + `useFetchService(id)` hook (reuses the pre-existing `catalogKeys.service(id)`). No new seed data or entities — the 34 F4 services already carry every detail field; **no Specialist work** (the Figma-driven steps 54–60 cover detail + add-ons + sticky CTA, not specialist lists). [ServiceDetailPage](../src/pages/ServiceDetailPage.tsx) rebuilt from the placeholder as an **immersive** page (route `handle: { hideNav: true, fullBleed: true }`): full-bleed `imageUrl` hero + scrim + floating back button (`navigate(-1)`), rounded content sheet with name + price (effective price, strikethrough `originalPrice`, `DiscountBadge`, duration via `formatDuration`, rating/reviewCount), description, a combo-only **"What's included"** check-list, a **"Recommended"** add-ons section (reused `ServiceListItem` rows), and the reused `StickyBottomBar` ("Add to cart" CTA → "Cart is coming soon" toast; real cart is F13). Included/recommended are derived client-side from one same-category `GET /services` query — **no invented contract field** (combo→`includedServiceIds`; single→other same-category singles, capped at 6). **Navigation wired**: `ServiceListItem` gained an optional `onOpen` so tapping a row (not the `+`) opens the detail page — used from `CategoryDetailPage`; nothing linked to `/services/:id` before. **4 data states**: 404 is routed to the empty state (not-found + "Browse services" CTA) via `getApiError().code`, so only real failures show the error/retry UI. Verified: typecheck + `vite build` clean; **20/20 Vitest** (17 existing + 3 new detail-endpoint tests: found/404/FORCE_500); **21/21 browser checks** (category→row→detail click-through, combo strikethrough+"20% OFF"+included list, single plain price, unknown-id not-found, FORCE_500 error+retry, sticky CTA toast, immersive no-nav, zero horizontal overflow @ 375/768/1024/1440, zero console errors). **Caveat**: `npm run lint` still fails repo-wide (pre-existing — ESLint 10 flat config never created; Rule 10 package approval pending). Imagery stays picsum until real assets drop into the same `imageUrl` fields.
+
+> **F5 design revision (2026-07-13, post-review).** User asked to reduce font sizes and corner radius on the detail view. One-notch reduction applied to **both** immersive detail pages ([ServiceDetailPage](../src/pages/ServiceDetailPage.tsx) + [CategoryDetailPage](../src/pages/CategoryDetailPage.tsx)) for consistency: titles `text-h2`→`text-h3` (24→20px), price `text-h3`→`text-h4` (20→18px), section headings `text-h3`→`text-h4` (20→18px), description/list items `text-body`→`text-body-sm` (16→14px), content-sheet top corner `rounded-t-3xl`→`rounded-t-xl` (24→16px, project token scale). Re-verified: typecheck + build clean, 21/21 browser checks still pass.
 
 ---
 
@@ -402,7 +406,7 @@
 | F2 — App Shell | 7 | 7 | `[x]` Complete |
 | F3 — Home | 11 | 0 | `[ ]` Not started |
 | F4 — Catalog | 11 | 11 | `[x]` Complete |
-| F5 — Details | 7 | 0 | `[ ]` Not started |
+| F5 — Details | 7 | 7 | `[x]` Complete |
 | F6 — Auth | 11 | 11 | `[x]` Complete |
 | F7 — Booking | 15 | 0 | `[ ]` Not started |
 | F8 — My Bookings | 10 | 0 | `[ ]` Not started |
@@ -415,7 +419,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **54** | **34%** |
+| **TOTAL** | **161** | **61** | **38%** |
 
 ---
 

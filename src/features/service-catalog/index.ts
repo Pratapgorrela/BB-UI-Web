@@ -17,10 +17,11 @@ export {
 } from './types/catalog.schema';
 export type { ServiceFiltersInput } from './types/catalog.schema';
 
-export { fetchCategories, fetchServices } from './api/catalogApi';
+export { fetchCategories, fetchService, fetchServices } from './api/catalogApi';
 
 export { CATALOG_STALE_TIME_MS, catalogKeys } from './hooks/keys';
 export { useFetchCategories } from './hooks/useFetchCategories';
+export { useFetchService } from './hooks/useFetchService';
 export { useFetchServices } from './hooks/useFetchServices';
 
 export { CatalogControls } from './components/CatalogControls';

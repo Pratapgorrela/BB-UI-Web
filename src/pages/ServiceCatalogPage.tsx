@@ -30,7 +30,7 @@ export function Component() {
               {Array.from({ length: 6 }).map((_, index) => (
                 <div key={index}>
                   <div className="aspect-182/157 w-full">
-                    <Skeleton variant="card" height="100%" className="rounded-2xl" />
+                    <Skeleton variant="card" height="100%" />
                   </div>
                   <Skeleton variant="line" width="4rem" className="mx-auto mt-2" />
                 </div>

@@ -11,7 +11,7 @@ function CategoryCard({ category }: CategoryCardProps) {
       to={`/categories/${category.slug}`}
       className="group block focus-visible:outline-none"
     >
-      <div className="overflow-hidden rounded-2xl transition-transform duration-fast ease-fast group-hover:scale-[1.02] group-focus-visible:shadow-focus">
+      <div className="overflow-hidden rounded-lg transition-transform duration-fast ease-fast group-hover:scale-[1.02] group-focus-visible:shadow-focus">
         <img
           src={category.imageUrl}
           alt=""

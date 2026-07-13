@@ -131,6 +131,15 @@ const mockAdapter: AxiosAdapter = async (
   const headers = AxiosHeaders.from(config.headers);
   const match = matchRoute(method, path);
 
+  // Axios hands `config.params` to the adapter unserialized — merge it with any
+  // query string already present in the URL so handlers see both.
+  const query = new URLSearchParams(rawQuery);
+  if (config.params && typeof config.params === 'object') {
+    for (const [key, value] of Object.entries(config.params as Record<string, unknown>)) {
+      if (value !== undefined && value !== null) query.set(key, String(value));
+    }
+  }
+
   let result: MockResult;
   if (!match) {
     result = fail(404, 'RESOURCE_NOT_FOUND', `No mock handler for ${method} ${path}.`, fullPath);
@@ -139,7 +148,7 @@ const mockAdapter: AxiosAdapter = async (
       method,
       path,
       params: match.params,
-      query: new URLSearchParams(rawQuery),
+      query,
       body: parseBody(config.data),
       authorization: (headers.get('Authorization') as string | null) ?? null,
     };

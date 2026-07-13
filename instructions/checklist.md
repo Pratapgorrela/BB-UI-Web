@@ -160,17 +160,19 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 43 | Lock Service Catalog contract section | `[ ]` |
-| 44 | Intel Report for F4 — wait for approval | `[ ]` |
-| 45 | Create Service, ServiceCategory types + Zod schemas | `[ ]` |
-| 46 | Create mock data (12+ services, 6 categories: Men/Women/Kids/Seniors/Bride/Groom, combo + single services) + mock handlers | `[ ]` |
-| 47 | Create API layer functions (fetchServices, fetchCategories) | `[ ]` |
-| 48 | Create React Query hooks (useFetchServices, useFetchCategories) with query keys | `[ ]` |
-| 49 | Build ServiceCard component (image + name + description + price + "+" add button — per Figma) | `[ ]` |
-| 50 | Build CategoryDetailPage (hero image, category name/description, Combos section, Single Services section — per Figma Men Services) | `[ ]` |
-| 51 | Build category filter bar | `[ ]` |
-| 52 | Build search + sort controls | `[ ]` |
-| 53 | Compose ServiceCatalogPage — category grid, filter, search, 4 data states, responsive | `[ ]` |
+| 43 | Lock Service Catalog contract section | `[x]` |
+| 44 | Intel Report for F4 — wait for approval | `[x]` |
+| 45 | Create Service, ServiceCategory types + Zod schemas | `[x]` |
+| 46 | Create mock data (12+ services, 6 categories: Men/Women/Kids/Seniors/Bride/Groom, combo + single services) + mock handlers | `[x]` |
+| 47 | Create API layer functions (fetchServices, fetchCategories) | `[x]` |
+| 48 | Create React Query hooks (useFetchServices, useFetchCategories) with query keys | `[x]` |
+| 49 | Build ServiceCard component (image + name + description + price + "+" add button — per Figma) | `[x]` |
+| 50 | Build CategoryDetailPage (hero image, category name/description, Combos section, Single Services section — per Figma Men Services) | `[x]` |
+| 51 | Build category filter bar | `[x]` |
+| 52 | Build search + sort controls | `[x]` |
+| 53 | Compose ServiceCatalogPage — category grid, filter, search, 4 data states, responsive | `[x]` |
+
+> **F4 complete (2026-07-13).** Contract amended to the Figma combo model before locking (`type` COMBO/SINGLE, `originalPrice`/`discountPercent`/`includedServiceIds`, `heroImageUrl`, `type` query param, INR). 34 seed services across 6 categories (Seniors deliberately has no combos → exercises the empty Combos section). New route `/categories/:slug` → CategoryDetailPage; `/services/:id` stays reserved for F5. ServiceCard "+" shows a "Cart is coming soon" toast — real cart lands in F13. **Fixed a latent mockEngine bug**: the axios adapter ignored `config.params`, so any GET with query params (all catalog filters) would have silently returned unfiltered data; also added a `paginated()` envelope helper. Verified: typecheck + build clean, 17 Vitest integration tests through the real mock adapter (envelopes, pagination math, all filters, sorting, FORCE_500, validation errors, seed↔schema integrity). **Caveats**: `npm run lint` fails repo-wide (pre-existing — ESLint 10 flat config never created; needs `typescript-eslint`, blocked on package approval per Rule 10). Browser/visual checks (screenshots, responsive) not run this session — Playwright MCP not connected; dev server verified serving with `VITE_USE_MOCKS=true`.
 
 ---
 
@@ -395,7 +397,7 @@
 | F1 — Design System | 15 | 15 | `[x]` Complete |
 | F2 — App Shell | 7 | 7 | `[x]` Complete |
 | F3 — Home | 11 | 0 | `[ ]` Not started |
-| F4 — Catalog | 11 | 0 | `[ ]` Not started |
+| F4 — Catalog | 11 | 11 | `[x]` Complete |
 | F5 — Details | 7 | 0 | `[ ]` Not started |
 | F6 — Auth | 11 | 11 | `[x]` Complete |
 | F7 — Booking | 15 | 0 | `[ ]` Not started |
@@ -409,7 +411,7 @@
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **161** | **43** | **27%** |
+| **TOTAL** | **161** | **54** | **34%** |
 
 ---
 

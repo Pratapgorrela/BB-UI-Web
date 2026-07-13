@@ -149,6 +149,20 @@ describe('GET /services — filters', () => {
     expect(body.pagination.totalItems).toBe(0);
   });
 
+  // F14 Search fires at a 2-char minimum — the server still filters normally.
+  it('filters on a short (2-char) query the way the search page sends it', async () => {
+    const needle = 'ha';
+    const body = await getServices({ search: needle, limit: 100 });
+    const matches = (service: Service) =>
+      `${service.name} ${service.shortDescription} ${service.description}`
+        .toLowerCase()
+        .includes(needle);
+    const expected = seedServices.filter(matches);
+    expect(expected.length).toBeGreaterThan(0);
+    expect(body.pagination.totalItems).toBe(expected.length);
+    expect(body.data.every(matches)).toBe(true);
+  });
+
   it('filters popular services and price range', async () => {
     const popular = await getServices({ isPopular: true, limit: 100 });
     expect(popular.pagination.totalItems).toBe(

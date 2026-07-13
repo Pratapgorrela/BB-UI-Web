@@ -367,11 +367,13 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 140 | Intel Report for F14 — wait for approval | `[ ]` |
-| 141 | Create search types + mock handlers (search results, recent searches) | `[ ]` |
-| 142 | Build SearchPage — back arrow, focused search input with purple border, "Recent Searches" list with "Clear all" link (per Figma) | `[ ]` |
-| 143 | Build search results view (reuse ServiceCard from F4) | `[ ]` |
-| 144 | 4 data states + responsive | `[ ]` |
+| 140 | Intel Report for F14 — wait for approval | `[x]` |
+| 141 | Create search types + mock handlers (search results, recent searches) | `[x]` |
+| 142 | Build SearchPage — back arrow, focused search input with purple border, "Recent Searches" list with "Clear all" link (per Figma) | `[x]` |
+| 143 | Build search results view (reuse ServiceCard from F4) | `[x]` |
+| 144 | 4 data states + responsive | `[x]` |
+
+> **F14 complete (2026-07-13).** Dedicated search page on `feature/F14-search`. **No new contract section** — results consume the already-LOCKED "Service Catalog" `GET /services?search=&limit=`, whose `search` filter was already built + tested (`catalog.mock.test.ts`: name/short/long case-insensitive, no-match empty, `FORCE_500`); added one focused test for a 2-char query (the min length the page fires at). **Deliberate deviation from step 141's "mock handlers (recent searches)":** recent searches are device-local browsing history with no contract section, so they're modeled **client-side** in a persisted Zustand store (`bb-recent-searches`) rather than a server endpoint — search *results* stay server-driven. New `src/features/search/` slice: `useRecentSearchesStore` (newest-first, case-insensitive dedupe, cap 8, trim + 60-char clamp), generic `useDebouncedValue` hook (UI-only 300ms debounce — fetching stays in React Query, Rule 4), `SearchField` (back arrow + purple-border focused input + inline clear ✕, `role=search`, autofocus), `RecentSearches` (Clock rows + per-item remove + "Clear all"; first-time hint when empty), `SearchResults` (reused `ServiceCard` grid 1→2→3 cols + `DataState` 4 states + `aria-live`). New page [SearchPage](../src/pages/SearchPage.tsx) at route `/search` (`handle: { hideNav: true }`, URL-driven `?q=` via `useSearchParams` for deep-link/back, mirrored with `replace` so typing doesn't flood history): <2 chars → recents, ≥2 chars → debounced live results; recents recorded only on explicit commit (Enter / tap a recent), not per keystroke; result tap → `/services/:id`, `+` → `useCartStore.addItem` + toast (parity with Home/Catalog). **Repointed** `HomeSearchBar` from the interim `/services` to `/search`. **Reused** `ServiceCard`, `useFetchServices`, `DataState`, `Skeleton`, `useCartStore`, `useToast`, design tokens, lucide icons — no new primitives, no new packages. Verified: `npm run typecheck` + `vite build` clean (SearchPage lazy-chunked, 6.28 kB); **110/110 Vitest** (102 prior + 7 store + 1 short-query); dev server boots clean, `/search` serves 200. **Caveats:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config blocked on package approval); full browser walkthrough pending user testing (Playwright not a project dep this session); Figma 184:7965 not reachable (connector auth) — built to brand language, expect a possible design-revision pass like F4/F5.
 
 ---
 
@@ -437,11 +439,11 @@
 | F11 — Alerts & Notif Settings | 9 | 0 | `[ ]` Not started |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
 | F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
-| F14 — Search | 5 | 0 | `[ ]` Not started |
+| F14 — Search | 5 | 5 | `[x]` Complete |
 | F15 — Track Van | 4 | 0 | `[ ]` Not started |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **121** | **73%** |
+| **TOTAL** | **166** | **126** | **76%** |
 
 ---
 

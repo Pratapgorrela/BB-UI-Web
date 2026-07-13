@@ -3,6 +3,7 @@ import { mockAdapter } from './lib/mockEngine';
 
 // Handler modules register their routes as an import side effect.
 import './handlers/auth.mock';
+import './handlers/booking.mock';
 import './handlers/cart.mock';
 import './handlers/catalog.mock';
 import './handlers/promotions.mock';

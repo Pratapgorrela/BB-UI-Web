@@ -1,5 +1,5 @@
 import { fail, MockError, ok, registerMock } from '../lib/mockEngine';
-import type { MockRequest } from '../lib/mockEngine';
+import { requireAuth } from '../lib/guards';
 import { seedCoupons } from '../data/cart.data';
 import { seedServices } from '../data/services.data';
 import {
@@ -19,15 +19,6 @@ const TAX_RATE_PERCENT = 18;
 
 function toValidationDetails(issues: { path: PropertyKey[]; message: string }[]): ApiErrorDetail[] {
   return issues.map((issue) => ({ field: issue.path.join('.'), message: issue.message }));
-}
-
-/** Lightweight access-token check — mirrors the auth.mock guard (order needs a logged-in user). */
-function requireAuth(req: MockRequest, path: string): void {
-  const token = req.authorization?.replace(/^Bearer\s+/i, '');
-  const [prefix, userId, expiresAt] = (token ?? '').split('.');
-  if (prefix !== 'mock-access' || !userId || Number(expiresAt) < Date.now()) {
-    throw new MockError(fail(401, 'UNAUTHORIZED', 'Please log in to place your order.', path));
-  }
 }
 
 function rupees(minor: number): string {
@@ -196,3 +187,6 @@ registerMock('POST', '/orders', (req) => {
 
   return ok(order, 201);
 });
+
+// Shared with booking.mock — POST /bookings prices its payload exactly like /checkout/summary.
+export { makeReferenceCode, priceCart, toValidationDetails };

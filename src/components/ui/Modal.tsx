@@ -8,9 +8,21 @@ interface ModalProps {
   title?: string;
   children: ReactNode;
   className?: string;
+  /** Accessible name when no visible title is rendered. */
+  ariaLabel?: string;
+  /** Set false for edge-to-edge content (e.g. hero images); defaults to the padded body. */
+  padded?: boolean;
 }
 
-function Modal({ open, onClose, title, children, className = '' }: ModalProps) {
+function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  className = '',
+  ariaLabel,
+  padded = true,
+}: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -38,10 +50,10 @@ function Modal({ open, onClose, title, children, className = '' }: ModalProps) {
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-modal flex items-end md:items-center md:justify-center">
+    <div className="fixed inset-0 z-(--z-modal) flex items-end md:items-center md:justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-neutral-900/50 animate-in fade-in duration-slow"
+        className="absolute inset-0 bg-neutral-900/50 animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -51,12 +63,12 @@ function Modal({ open, onClose, title, children, className = '' }: ModalProps) {
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-label={ariaLabel ?? title}
         tabIndex={-1}
         className={[
           'relative z-10 bg-neutral-0 w-full max-h-[85vh] overflow-y-auto',
           'rounded-t-xl md:rounded-xl md:max-w-[480px] md:mx-4',
-          'shadow-xl',
+          'shadow-xl animate-slide-up md:animate-fade-in',
           className,
         ]
           .filter(Boolean)
@@ -79,7 +91,7 @@ function Modal({ open, onClose, title, children, className = '' }: ModalProps) {
         )}
 
         {/* Body */}
-        <div className="p-4">{children}</div>
+        <div className={padded ? 'p-4' : ''}>{children}</div>
       </div>
     </div>,
     document.body,

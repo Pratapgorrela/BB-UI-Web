@@ -103,5 +103,17 @@ function cartSelectedDuration(items: CartItem[]): number {
   );
 }
 
-export { cartItemCount, cartSelectedDuration, cartSubtotal, selectedCartItems, useCartStore };
+/** Whether a service already has a line in the cart. */
+function isInCart(items: CartItem[], serviceId: string): boolean {
+  return items.some((item) => item.serviceId === serviceId);
+}
+
+export {
+  cartItemCount,
+  cartSelectedDuration,
+  cartSubtotal,
+  isInCart,
+  selectedCartItems,
+  useCartStore,
+};
 export type { CartState };

@@ -37,11 +37,12 @@ function Badge({ variant = 'default', children, className = '', ...props }: Badg
 interface DiscountBadgeProps {
   percentage: number;
   className?: string;
+  variant?: BadgeVariant;
 }
 
-function DiscountBadge({ percentage, className = '' }: DiscountBadgeProps) {
+function DiscountBadge({ percentage, className = '', variant = 'success' }: DiscountBadgeProps) {
   return (
-    <Badge variant="success" className={className}>
+    <Badge variant={variant} className={className}>
       {percentage}% OFF
     </Badge>
   );

@@ -37,6 +37,7 @@
 | Reviews | `DRAFT` | — | F10 |
 | Notifications & Alerts | `LOCKED` | 2026-07-13 | F11 |
 | Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
+| Tracking | `LOCKED` | 2026-07-13 | F15 |
 | Help & Support | `DRAFT` | — | F16 |
 
 ---
@@ -385,10 +386,12 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 145 | Intel Report for F15 — wait for approval | `[ ]` |
-| 146 | Create tracking types + mock handlers (van location, ETA, driver/stylist info) | `[ ]` |
-| 147 | Build TrackVanPage — "Your Beauty Bus is on the way!" header with ETA, address bar, map placeholder, Van ID + driver info with Call button, stylist info, availability reminder card (per Figma) | `[ ]` |
-| 148 | 4 data states + responsive | `[ ]` |
+| 145 | Intel Report for F15 — wait for approval | `[x]` |
+| 146 | Create tracking types + mock handlers (van location, ETA, driver/stylist info) | `[x]` |
+| 147 | Build TrackVanPage — "Your Beauty Bus is on the way!" header with ETA, address bar, map placeholder, Van ID + driver info with Call button, stylist info, availability reminder card (per Figma) | `[x]` |
+| 148 | 4 data states + responsive | `[x]` |
+
+> **F15 complete (2026-07-13).** Track Van per the new **LOCKED "Tracking" contract section** (Rule 1): `Van`, `GeoPoint`, `VanTracking` entities + `GET /bookings/:id/tracking` (auth, owned-or-404 mirroring `GET /bookings/:id`; **422 `BUSINESS_RULE_VIOLATION` for COMPLETED/CANCELLED** — tracking only exists while active; `?scenario=error` → 500). Tracking is a **point-in-time snapshot** with a deterministic status mapping from the booking's state: PENDING → `NOT_DISPATCHED` (null eta/location), CONFIRMED → `EN_ROUTE` (eta = minutes-to-slot clamped 5–45) or `ARRIVING` when ≤15 min, IN_PROGRESS → `ARRIVED` (eta 0, van at destination). **Mock layer:** new read-only [`seedVans`](../src/mocks/data/vans.data.ts) (4 vans, TS plates, E.164 driver phones) assigned **deterministically by booking-id hash** (same booking always shows the same van/driver — mirrors the specialists pattern); new [`tracking.mock`](../src/mocks/handlers/tracking.mock.ts) reads the merged booking universe via `allBookings`, expands the specialist from seeds and the destination from the **real Address record** (`findAddressRecord` + `addressToLine`, lat/lng carried through; graceful fallback when the address is gone); van position = destination + small eta-scaled offset (Hyderabad city-centre fallback for un-geocoded addresses). **Feature slice** (extends `features/booking/` — same domain as F7/F8): tracking types + Zod (`vanTrackingSchema` etc., field-for-field parity), `fetchVanTracking`, `bookingKeys.tracking(id)`, `useFetchVanTracking` (**30s `refetchInterval` poll** that stops on terminal 404/422 outcomes, `[TrackVan]`-prefixed logs). **UI:** new route `/bookings/:id/track` (ProtectedRoute, `hideNav`); [TrackVanPage](../src/pages/TrackVanPage.tsx) = `TrackingStatusHero` (purple gradient banner, per-status copy + ETA + `formatDistanceToNow` freshness line, `aria-live`; h2 under the PageHeader h1), `TrackingMapPlaceholder` (decorative streets + pulsing van pin, doubles as the "not dispatched yet" visual, `role=img`, **no map SDK — Rule 10**), destination bar, van card (vanCode + mono plate + driver + **Call via `tel:` anchor**), stylist card (Avatar + rating), info reminder card. **404 and 422 route to the empty state** (not error/retry — mirrors ServiceDetailPage's 404 handling) with context-aware CTAs (View booking / My bookings). BookingDetailPage's Track Van stub repointed from the "coming soon" toast to the route. **Reused** `PageHeader`, `Card`, `Avatar`, `DataState`, `Skeleton(Card)`, `getApiError(Message)`, `requireAuth`, date-fns, Lucide — no new primitives, no new packages. Verified: typecheck + `vite build` clean; **142/142 Vitest** (129 prior + 13 new: seed↔schema, 401/404×2/422×2/500, per-status snapshots incl. eta clamp + ARRIVING via injected localStorage booking + ARRIVED-at-destination, real-address destination, deterministic van); **30/30 browser checks** (scratchpad Playwright, port 5177): detail→track navigation, EN_ROUTE/NOT_DISPATCHED/ARRIVED heroes, map/van/stylist/reminder cards, `tel:` link, back + deep-link fallback, COMPLETED→inactive + unknown-id→not-found empty states with CTAs and `[TrackVan]`-only console errors, skeleton, hidden nav, zero overflow @ 375/768/1024/1440; 2 screenshots. **Caveats:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config blocked on package approval); Figma 184:6819 not reachable this session (connector auth) — built to brand language from the checklist's screen description, expect a possible design-revision pass like F4/F5/F9; map is a static placeholder and "live" movement is only snapshot-per-poll (no real geo feed in mock).
 
 ---
 
@@ -442,10 +445,10 @@
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
 | F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
 | F14 — Search | 5 | 5 | `[x]` Complete |
-| F15 — Track Van | 4 | 0 | `[ ]` Not started |
+| F15 — Track Van | 4 | 4 | `[x]` Complete |
 | F16 — Help & Support | 10 | 0 | `[ ]` Not started |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **135** | **81%** |
+| **TOTAL** | **166** | **139** | **84%** |
 
 ---
 

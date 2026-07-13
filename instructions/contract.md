@@ -350,6 +350,43 @@
 
 > **Superseded (2026-07-13):** replaced by the amended `Booking` entity — checkout now creates a scheduled Booking directly (F7). See the change log.
 
+### Van
+
+> The service van + driver pairing assigned to a dispatched booking (F15 Track Van). Deterministically assigned by the system — never client-selected. Only surfaced inside `VanTracking`.
+
+| Field | Type | Notes |
+|---|---|---|
+| vanCode | string | Display ID, e.g., `"BB-VAN-03"` |
+| vehicleNumber | string | Registration plate, e.g., `"TS 09 EB 4721"` |
+| driverName | string | |
+| driverPhone | string | E.164 — powers the Call button (`tel:`) |
+
+### GeoPoint
+
+> A latitude/longitude pair for map display.
+
+| Field | Type | Notes |
+|---|---|---|
+| latitude | number | |
+| longitude | number | |
+
+### VanTracking
+
+> The live tracking snapshot for an active booking (F15 Track Van screen). A point-in-time snapshot — the client refetches to update; no streaming in MVP. `status` is derived from the booking's state and time-to-slot.
+
+| Field | Type | Notes |
+|---|---|---|
+| bookingId | UUID | FK → Booking |
+| status | enum | `NOT_DISPATCHED` \| `EN_ROUTE` \| `ARRIVING` \| `ARRIVED` |
+| etaMinutes | integer \| null | Minutes until arrival; `null` when `NOT_DISPATCHED`, `0` when `ARRIVED` |
+| van | Van | The assigned van + driver |
+| specialist | Specialist | The booking's assigned stylist (expanded) |
+| destination | `{ label, line, latitude: number\|null, longitude: number\|null }` | The booking address as a display line + optional coordinates |
+| currentLocation | GeoPoint \| null | Van position; `null` when `NOT_DISPATCHED` |
+| updatedAt | ISO 8601 | Snapshot time |
+
+**Status mapping (deterministic):** booking `PENDING` → `NOT_DISPATCHED`; booking `CONFIRMED` → `EN_ROUTE` (`etaMinutes` = minutes until `scheduledAt`, clamped 5–45), or `ARRIVING` when ≤ 15 minutes remain; booking `IN_PROGRESS` → `ARRIVED` (`etaMinutes: 0`). `COMPLETED`/`CANCELLED` bookings have no tracking (422 — see endpoint).
+
 ---
 
 ## Booking Status Lifecycle
@@ -650,6 +687,26 @@ exist or belongs to another user. Idempotent (already-read stays read).
 
 ---
 
+### Tracking — `STATUS: LOCKED (2026-07-13)`
+
+> Backs F15 Track Van. A single read endpoint returning a point-in-time `VanTracking` snapshot for one of the caller's active bookings. Auth required; ownership follows the booking rules (owned-or-404). Tracking exists only while a booking is active — `PENDING`/`CONFIRMED`/`IN_PROGRESS`; `COMPLETED` and `CANCELLED` bookings return 422.
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| GET | `/api/v1/bookings/:id/tracking` | Van tracking snapshot for an active booking | Yes |
+
+**GET `/api/v1/bookings/:id/tracking`**
+```json
+// Response: Success envelope with a VanTracking
+// Error: UNAUTHORIZED (401) — no/invalid access token
+// Error: RESOURCE_NOT_FOUND (404) — unknown id or another user's booking
+// Error: BUSINESS_RULE_VIOLATION (422) — booking is COMPLETED or CANCELLED
+//        ("Tracking is only available for active bookings.")
+// Mock supports ?scenario=error → 500 for state testing.
+```
+
+---
+
 ## Contract Change Log
 
 | Date | Section | Change | Author |
@@ -662,6 +719,7 @@ exist or belongs to another user. Idempotent (already-read stays read).
 | 2026-07-13 | Availability & Booking | Rewritten for the integrated cart→checkout flow, then locked for F7/F8: TimeSlot is a capacity-level hourly arrival window queried by date only (specialistId removed — specialists are system-assigned at booking creation); Booking now carries `items: CartItem[]` + `paymentSummary` snapshots (multi-service), system-assigned `specialistId`, `referenceCode`, and `scheduledAt` derived from the slot; `POST /bookings` takes `{items, couponCode, addressId, timeSlotId, notes}` and supersedes `POST /orders`; `SLOT_UNAVAILABLE` (409) defined on create/reschedule; `GET /bookings` gains status filter + pagination detail | Claude |
 | 2026-07-13 | Cart & Checkout | `POST /orders` and the `Order` entity superseded by `POST /bookings` + the amended `Booking` — checkout now creates a scheduled booking directly, giving F8 real data. `GET /coupons` and `POST /checkout/summary` unchanged | Claude |
 | 2026-07-13 | Notifications | Section locked for F11. Added `NotificationSettings` entity (per-user singleton: `whatsappEnabled` + 4 channel toggles). Endpoints expanded from the 2-endpoint draft: `GET /notifications` gains a `category` (BOOKING/OFFER, derived from `type`) filter + pagination detail; added `GET /notifications/unread-count` (nav badge), `PATCH /notifications/:id/read`, `DELETE /notifications/:id` (dismiss), and `GET`/`PATCH /notification-settings`. No new stored fields on `Notification` — the tab category is derived from `type` | Claude |
+| 2026-07-13 | Tracking | New section added + locked for F15. `Van`, `GeoPoint`, `VanTracking` entities and `GET /bookings/:id/tracking` (auth, owned-or-404; 422 for COMPLETED/CANCELLED). Tracking is a point-in-time snapshot with a deterministic status mapping from the booking's state (PENDING → NOT_DISPATCHED, CONFIRMED → EN_ROUTE/ARRIVING by time-to-slot, IN_PROGRESS → ARRIVED); vans are system-assigned like specialists | Claude |
 | 2026-07-13 | Profile & Addresses | Section locked for F9. No new fields — the drafted `Address` entity + 6 endpoints stand as-is. Clarifications added: `GET /profile` mirrors `/auth/me` (`User`); `GET /addresses` uses the single-resource envelope (`Address[]`, default first) with `?scenario=empty|error`; `isDefault` is exclusive (setting one unsets siblings); first address forced default; deleting the default promotes the next; delete blocked (422) when a PENDING/CONFIRMED booking references the address | Claude |
 
 ---

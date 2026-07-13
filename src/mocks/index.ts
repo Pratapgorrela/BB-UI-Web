@@ -9,6 +9,7 @@ import './handlers/catalog.mock';
 import './handlers/notifications.mock';
 import './handlers/profile.mock';
 import './handlers/promotions.mock';
+import './handlers/tracking.mock';
 
 function installMocks(client: AxiosInstance): void {
   client.defaults.adapter = mockAdapter;

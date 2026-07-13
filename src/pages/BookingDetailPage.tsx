@@ -115,7 +115,7 @@ export function Component() {
   }
 
   function handleTrackVan() {
-    addToast('Live van tracking is coming soon.', 'info');
+    if (id) navigate(`/bookings/${id}/track`);
   }
 
   /** Re-adds the booking's items to the cart (bumping quantities) and opens it. */

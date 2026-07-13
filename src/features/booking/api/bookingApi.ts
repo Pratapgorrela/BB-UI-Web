@@ -9,6 +9,7 @@ import type {
   CreateBookingRequest,
   RescheduleBookingRequest,
   TimeSlot,
+  VanTracking,
 } from '../types/booking';
 
 async function fetchTimeSlots(date: string): Promise<TimeSlot[]> {
@@ -55,11 +56,17 @@ async function rescheduleBooking(
   return response.data.data;
 }
 
+async function fetchVanTracking(id: string): Promise<VanTracking> {
+  const response = await apiClient.get<ApiSuccess<VanTracking>>(`/bookings/${id}/tracking`);
+  return response.data.data;
+}
+
 export {
   cancelBooking,
   createBooking,
   fetchBooking,
   fetchBookings,
   fetchTimeSlots,
+  fetchVanTracking,
   rescheduleBooking,
 };

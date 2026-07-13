@@ -103,6 +103,56 @@ interface CancelBookingRequest {
   cancellationReason: string;
 }
 
+/* ── Tracking (F15) ── */
+
+type TrackingStatus = 'NOT_DISPATCHED' | 'EN_ROUTE' | 'ARRIVING' | 'ARRIVED';
+
+/**
+ * The service van + driver pairing assigned to a dispatched booking —
+ * system-assigned like specialists, never client-selected.
+ */
+interface Van {
+  /** Display ID, e.g., `"BB-VAN-03"`. */
+  vanCode: string;
+  /** Registration plate, e.g., `"TS 09 EB 4721"`. */
+  vehicleNumber: string;
+  driverName: string;
+  /** E.164 — powers the Call button (`tel:`). */
+  driverPhone: string;
+}
+
+/** A latitude/longitude pair for map display. */
+interface GeoPoint {
+  latitude: number;
+  longitude: number;
+}
+
+/** The booking address as a display line + optional coordinates. */
+interface TrackingDestination {
+  label: string;
+  line: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+/**
+ * `GET /bookings/:id/tracking` — a point-in-time tracking snapshot for an
+ * active booking. Status derives from the booking's state and time-to-slot:
+ * PENDING → NOT_DISPATCHED, CONFIRMED → EN_ROUTE/ARRIVING, IN_PROGRESS → ARRIVED.
+ */
+interface VanTracking {
+  bookingId: string;
+  status: TrackingStatus;
+  /** Minutes until arrival; `null` when NOT_DISPATCHED, `0` when ARRIVED. */
+  etaMinutes: number | null;
+  van: Van;
+  specialist: Specialist;
+  destination: TrackingDestination;
+  /** Van position; `null` when NOT_DISPATCHED. */
+  currentLocation: GeoPoint | null;
+  updatedAt: string;
+}
+
 export type {
   Booking,
   BookingAddress,
@@ -112,7 +162,12 @@ export type {
   BookingStatus,
   CancelBookingRequest,
   CreateBookingRequest,
+  GeoPoint,
   RescheduleBookingRequest,
   Specialist,
   TimeSlot,
+  TrackingDestination,
+  TrackingStatus,
+  Van,
+  VanTracking,
 };

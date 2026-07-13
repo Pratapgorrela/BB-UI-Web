@@ -4,10 +4,7 @@ export type {
   CheckoutSummaryRequest,
   Coupon,
   CouponDiscountType,
-  Order,
-  OrderStatus,
   PaymentSummary,
-  PlaceOrderRequest,
 } from './types/cart';
 
 export {
@@ -16,17 +13,14 @@ export {
   checkoutSummaryRequestSchema,
   couponDiscountTypeSchema,
   couponSchema,
-  orderSchema,
   paymentSummarySchema,
-  placeOrderRequestSchema,
 } from './types/cart.schema';
 
-export { fetchCheckoutSummary, fetchCoupons, placeOrder } from './api/cartApi';
+export { fetchCheckoutSummary, fetchCoupons } from './api/cartApi';
 
 export { CART_STALE_TIME_MS, cartKeys } from './hooks/keys';
 export { useFetchCoupons } from './hooks/useFetchCoupons';
 export { useCheckoutSummary } from './hooks/useCheckoutSummary';
-export { usePlaceOrder } from './hooks/usePlaceOrder';
 
 export { checkoutAddresses } from './data/checkoutAddresses';
 export type { CheckoutAddress } from './data/checkoutAddresses';

@@ -4,24 +4,19 @@ import { mockAdapter } from '../lib/mockEngine';
 import './cart.mock';
 import { seedCoupons } from '../data/cart.data';
 import { seedServices } from '../data/services.data';
-import { couponSchema, orderSchema, paymentSummarySchema } from '../../features/cart/types/cart.schema';
-import type { Coupon, Order, PaymentSummary } from '../../features/cart/types/cart';
+import { couponSchema, paymentSummarySchema } from '../../features/cart/types/cart.schema';
+import type { Coupon, PaymentSummary } from '../../features/cart/types/cart';
 import type { ApiFailure, ApiSuccess } from '../../types/api';
 
 // Requests go through the real mock adapter — the exact path the app uses.
 const client = axios.create({ adapter: mockAdapter });
 
 const TAX_RATE = 18;
-const ADDRESS_ID = 'a1e7c9d2-4b6f-4a1e-9c3d-7f2b8e5a1c40';
 
 // Use the highest-priced service so coupon thresholds are reachable within the qty cap (20).
 const service = seedServices.reduce((max, candidate) =>
   candidate.price.amount > max.price.amount ? candidate : max,
 );
-
-function validToken(): string {
-  return `mock-access.test-user.${Date.now() + 60_000}`;
-}
 
 async function expectApiError(promise: Promise<unknown>, status: number, code: string) {
   try {
@@ -152,35 +147,4 @@ describe('POST /checkout/summary', () => {
   });
 });
 
-describe('POST /orders', () => {
-  const body = {
-    items: [{ serviceId: service.id, quantity: 1 }],
-    addressId: ADDRESS_ID,
-  };
-
-  it('requires authentication (401 without a token)', async () => {
-    await expectApiError(client.post('/orders', body), 401, 'UNAUTHORIZED');
-  });
-
-  it('places an order and returns a reference code when authenticated', async () => {
-    const response = await client.post<ApiSuccess<Order>>('/orders', body, {
-      headers: { Authorization: `Bearer ${validToken()}` },
-    });
-    expect(response.status).toBe(201);
-    const order = response.data.data;
-    expect(() => orderSchema.parse(order)).not.toThrow();
-    expect(order.status).toBe('PLACED');
-    expect(order.referenceCode).toMatch(/^BB-\d{8}-[0-9A-F]{4}$/);
-    expect(order.items).toHaveLength(1);
-    expect(order.addressId).toBe(ADDRESS_ID);
-  });
-
-  it('applies coupons through the order endpoint too', async () => {
-    const response = await client.post<ApiSuccess<Order>>(
-      '/orders',
-      { ...body, couponCode: 'FLAT100' },
-      { headers: { Authorization: `Bearer ${validToken()}` } },
-    );
-    expect(response.data.data.paymentSummary.appliedCoupon?.code).toBe('FLAT100');
-  });
-});
+// POST /orders was superseded by POST /bookings — coverage lives in booking.mock.test.ts.

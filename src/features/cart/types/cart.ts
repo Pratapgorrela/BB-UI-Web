@@ -3,8 +3,6 @@ import type { Service } from '../../service-catalog/types/catalog';
 
 type CouponDiscountType = 'PERCENT' | 'FLAT';
 
-type OrderStatus = 'PLACED';
-
 /**
  * A single line in the cart. The cart lives in client state (`useCartStore`,
  * persisted) — this is the shape held per line. `service` is an expanded
@@ -38,17 +36,7 @@ interface PaymentSummary {
   taxRatePercent: number;
 }
 
-interface Order {
-  id: string;
-  referenceCode: string;
-  items: CartItem[];
-  paymentSummary: PaymentSummary;
-  addressId: string;
-  status: OrderStatus;
-  createdAt: string;
-}
-
-/** The minimal per-line payload the client sends to pricing/order endpoints. */
+/** The minimal per-line payload the client sends to pricing/booking endpoints. */
 interface CartLineInput {
   serviceId: string;
   quantity: number;
@@ -59,18 +47,11 @@ interface CheckoutSummaryRequest {
   couponCode?: string | null;
 }
 
-interface PlaceOrderRequest extends CheckoutSummaryRequest {
-  addressId: string;
-}
-
 export type {
   CartItem,
   CartLineInput,
   CheckoutSummaryRequest,
   Coupon,
   CouponDiscountType,
-  Order,
-  OrderStatus,
   PaymentSummary,
-  PlaceOrderRequest,
 };

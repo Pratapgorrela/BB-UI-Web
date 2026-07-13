@@ -1,12 +1,6 @@
 import { apiClient } from '../../../lib/apiClient';
 import type { ApiSuccess } from '../../../types/api';
-import type {
-  CheckoutSummaryRequest,
-  Coupon,
-  Order,
-  PaymentSummary,
-  PlaceOrderRequest,
-} from '../types/cart';
+import type { CheckoutSummaryRequest, Coupon, PaymentSummary } from '../types/cart';
 
 async function fetchCoupons(): Promise<Coupon[]> {
   const response = await apiClient.get<ApiSuccess<Coupon[]>>('/coupons');
@@ -18,9 +12,4 @@ async function fetchCheckoutSummary(request: CheckoutSummaryRequest): Promise<Pa
   return response.data.data;
 }
 
-async function placeOrder(request: PlaceOrderRequest): Promise<Order> {
-  const response = await apiClient.post<ApiSuccess<Order>>('/orders', request);
-  return response.data.data;
-}
-
-export { fetchCheckoutSummary, fetchCoupons, placeOrder };
+export { fetchCheckoutSummary, fetchCoupons };

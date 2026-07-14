@@ -38,7 +38,7 @@
 | Notifications & Alerts | `LOCKED` | 2026-07-13 | F11 |
 | Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
 | Tracking | `LOCKED` | 2026-07-13 | F15 |
-| Help & Support | `DRAFT` | — | F16 |
+| Help & Support | `LOCKED` | 2026-07-14 | F16 |
 
 ---
 

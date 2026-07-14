@@ -36,6 +36,10 @@ const router = createBrowserRouter([
         handle: { hideNav: true, fullBleed: true } satisfies AppRouteHandle,
       },
       {
+        path: '/help',
+        lazy: () => import('../pages/HelpSupportPage'),
+      },
+      {
         path: '/login',
         lazy: () => import('../pages/LoginPage'),
         handle: { hideNav: true } satisfies AppRouteHandle,
@@ -68,6 +72,14 @@ const router = createBrowserRouter([
           {
             path: '/profile/addresses',
             lazy: () => import('../pages/SavedAddressesPage'),
+          },
+          {
+            path: '/help/concern',
+            lazy: () => import('../pages/RaiseConcernPage'),
+          },
+          {
+            path: '/help/requests',
+            lazy: () => import('../pages/SupportRequestsPage'),
           },
           {
             path: '/notifications',

@@ -401,16 +401,18 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 149 | Add Help & Support contract section to contract.md | `[ ]` |
-| 150 | Intel Report for F16 — wait for approval | `[ ]` |
-| 151 | Create SupportRequest, FAQ types + Zod schemas | `[ ]` |
-| 152 | Create mock data (FAQ items, support requests) + mock handlers | `[ ]` |
-| 153 | Create help/support API layer + hooks | `[ ]` |
-| 154 | Build HelpSupportPage — FAQ accordion (expand/collapse), Call Support card (hours), Raise a Concern link, Your Support Requests link (per Figma) | `[ ]` |
-| 155 | Build RaiseConcernPage — form with Booking ID dropdown, Issue Type dropdown, Description textarea, "Submit Request" button (per Figma) | `[ ]` |
-| 156 | Build SupportRequestsPage — list of submitted requests | `[ ]` |
-| 157 | Build submission success/failure states (per Figma) | `[ ]` |
-| 158 | 4 data states + responsive | `[ ]` |
+| 149 | Add Help & Support contract section to contract.md | `[x]` |
+| 150 | Intel Report for F16 — wait for approval | `[x]` |
+| 151 | Create SupportRequest, FAQ types + Zod schemas | `[x]` |
+| 152 | Create mock data (FAQ items, support requests) + mock handlers | `[x]` |
+| 153 | Create help/support API layer + hooks | `[x]` |
+| 154 | Build HelpSupportPage — FAQ accordion (expand/collapse), Call Support card (hours), Raise a Concern link, Your Support Requests link (per Figma) | `[x]` |
+| 155 | Build RaiseConcernPage — form with Booking ID dropdown, Issue Type dropdown, Description textarea, "Submit Request" button (per Figma) | `[x]` |
+| 156 | Build SupportRequestsPage — list of submitted requests | `[x]` |
+| 157 | Build submission success/failure states (per Figma) | `[x]` |
+| 158 | 4 data states + responsive | `[x]` |
+
+> **F16 complete (2026-07-14).** Help & Support per the new **LOCKED "Help & Support" contract section** (Rule 1): `FAQ` + `SupportRequest` entities and `GET /faqs` (guest), `GET /support-requests` (auth, paginated, `createdAt` DESC), `POST /support-requests` (auth, 201; server-assigned `SR-YYYYMMDD-XXXX` `referenceCode`; optional `bookingId` must be the caller's — else 400; `bookingReferenceCode` snapshotted at creation; `FORCE_500` in the description → 500, powering the Figma failure state). Call Support contact details are **static client content by contract note** (`SUPPORT_CONTACT` in the feature — deliberately not an endpoint). **Mock layer:** read-only [`seedFaqs`](../src/mocks/data/faqs.data.ts) (8 editorial items) + [`seedSupportRequests`](../src/mocks/data/supportRequests.data.ts) (Priya ×2 — RESOLVED linked to her COMPLETED seed booking via a runtime lookup so ids/codes always match + OPEN general; Rahul ×1 → scoping proof); new [`support.mock`](../src/mocks/handlers/support.mock.ts) with seed ∪ localStorage `bb-mock-support-requests` merge (creations only — no tombstones needed; reuses `requireAuth`, `toValidationDetails`, `allBookings` for booking ownership). **Feature slice** `src/features/support/` (types → Zod → api → hooks → components → utils → barrel): `useFetchFaqs` (5min stale), `useFetchSupportRequests` (keepPreviousData, 30s), `useCreateSupportRequest` (invalidates list; **no toast — feedback is the Figma result screens**), `SUPPORT_ISSUE_TYPE_*`/`SUPPORT_STATUS_*` label+Badge-variant maps, `SupportRequestCard`, `SupportRequestStatusBadge`, `CallSupportSheet` (reused `Modal`: hours, `mailto:`, `tel:` CTA). **Pages:** [HelpSupportPage](../src/pages/HelpSupportPage.tsx) at **public `/help`** (guest FAQs per contract; FAQ `Accordion` — first real use of the F1 primitive —, "Still need help?" rows: Call support sheet / Raise a concern / Your support requests), [RaiseConcernPage](../src/pages/RaiseConcernPage.tsx) at protected `/help/concern` (RHF+Zod: booking dropdown from `useFetchBookings({limit:50})` with a `NONE` sentinel "Not related to a booking", issue-type Select, min-20 description; **in-page success/failure result states** — success shows the SR reference + "View your requests", failure's "Try again" returns to the *intact* form since RHF state lives at page level), [SupportRequestsPage](../src/pages/SupportRequestsPage.tsx) at protected `/help/requests` (URL-driven `?page=`, status badges, booking ref line, empty-state CTA → concern form). **Stubs repointed:** ProfilePage "Help & support" menu row and the Home `SupportFab` now navigate to `/help` (both "coming soon" toasts retired). **Reused** `Accordion`, `Modal`, `Card`, `Select`/`Textarea`, `Badge`, `Button`, `DataState`, `Skeleton`, `PageHeader`, `useFetchBookings`/`formatScheduledAt`, `getApiErrorMessage`, date-fns `formatDistanceToNow` — no new primitives, no new packages. Verified: `npm run typecheck` + `vite build` clean; **161/161 Vitest** (142 prior + 19 new: FAQ/request seed↔schema integrity incl. booking-link consistency, faqs sort + scenarios, list 401/scoping/sort/pagination/scenarios, create 401/400×4 (enum, empty desc, unknown + foreign bookingId)/FORCE_500/201 shape + SR code format/booking snapshot/persistence-into-list); **31/31 browser checks** (scratchpad Playwright, port 5178, priya): guest FAQ expand/collapse, call sheet hours + `tel:+918047471234` + Escape close, guest→concern login redirect with returnTo, booking dropdown seeds, empty-submit field errors, FORCE_500 → failure screen → "Try again" with values intact, happy submit → success screen with SR code → list shows it first among 3, profile-menu + home-FAB entry points, zero horizontal overflow @ 375/768/1024/1440, zero unexpected console errors; 4 screenshots. **Caveats:** `npm run lint` still fails repo-wide (pre-existing — ESLint flat config blocked on package approval per Rule 10); session ran autonomously so the step-150 Intel Report was printed and self-approved — review it in the session log; Figma 184:7440/7526/7537/7567/7597/7607 not reachable this session (connector auth) — built to brand language from the checklist's screen descriptions, expect a possible design-revision pass like F4/F5/F9.
 
 ---
 
@@ -446,9 +448,9 @@
 | F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
 | F14 — Search | 5 | 5 | `[x]` Complete |
 | F15 — Track Van | 4 | 4 | `[x]` Complete |
-| F16 — Help & Support | 10 | 0 | `[ ]` Not started |
+| F16 — Help & Support | 10 | 10 | `[x]` Complete |
 | F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **139** | **84%** |
+| **TOTAL** | **166** | **149** | **90%** |
 
 ---
 

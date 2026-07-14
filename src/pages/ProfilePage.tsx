@@ -26,7 +26,7 @@ const MENU_LINKS: MenuLink[] = [
   { label: 'My bookings', icon: CalendarCheck, to: '/bookings' },
   { label: 'Saved addresses', icon: MapPin, to: '/profile/addresses' },
   { label: 'Notifications', icon: Bell, to: '/notifications' },
-  { label: 'Help & support', icon: HelpCircle, soon: 'Help & support is coming soon.' },
+  { label: 'Help & support', icon: HelpCircle, to: '/help' },
   { label: 'Terms & policies', icon: FileText, soon: 'Terms & policies are coming soon.' },
 ];
 

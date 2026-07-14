@@ -1,4 +1,4 @@
-import { type HTMLAttributes } from 'react';
+﻿import { type HTMLAttributes } from 'react';
 
 type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
 
@@ -9,7 +9,7 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 const variantStyles: Record<BadgeVariant, string> = {
   default: 'bg-neutral-200 text-neutral-700',
   primary: 'bg-primary-100 text-primary-700',
-  success: 'bg-success-100 text-success-700',
+  success: 'bg-success-100 text-success-800',
   warning: 'bg-warning-100 text-warning-700',
   danger: 'bg-danger-100 text-danger-700',
   info: 'bg-info-100 text-info-700',
@@ -32,7 +32,7 @@ function Badge({ variant = 'default', children, className = '', ...props }: Badg
   );
 }
 
-/* ── Discount Badge (specialized) ── */
+/* â”€â”€ Discount Badge (specialized) â”€â”€ */
 
 interface DiscountBadgeProps {
   percentage: number;

@@ -1,4 +1,4 @@
-export const colorGroups = [
+﻿export const colorGroups = [
   {
     name: 'Primary (Purple)',
     prefix: 'primary',
@@ -83,7 +83,7 @@ export const colorGroups = [
       { shade: 200, hex: '#E8E4ED', class: 'bg-neutral-200' },
       { shade: 300, hex: '#D1CBD9', class: 'bg-neutral-300' },
       { shade: 400, hex: '#A89DB5', class: 'bg-neutral-400' },
-      { shade: 500, hex: '#7F7290', class: 'bg-neutral-500' },
+      { shade: 500, hex: '#675C76', class: 'bg-neutral-500' },
       { shade: 600, hex: '#5C5169', class: 'bg-neutral-600' },
       { shade: 700, hex: '#3D3548', class: 'bg-neutral-700' },
       { shade: 800, hex: '#261F30', class: 'bg-neutral-800' },

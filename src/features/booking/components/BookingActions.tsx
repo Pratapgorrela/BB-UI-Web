@@ -9,13 +9,15 @@ interface BookingActionsProps {
   onRebook: () => void;
   onCancel: () => void;
   onShowPaymentSummary: () => void;
+  onWriteReview: () => void;
 }
 
 /**
  * Per-status actions (Figma): active bookings get Track Van / Reschedule /
- * Rebook / Cancel; completed bookings get Payment Summary only. The contract
- * restricts cancel/reschedule to PENDING/CONFIRMED outside the 2h window, so
- * IN_PROGRESS offers Track Van + Rebook and CANCELLED offers Rebook.
+ * Rebook / Cancel; completed bookings get Write a review (F10) + Payment
+ * Summary. The contract restricts cancel/reschedule to PENDING/CONFIRMED
+ * outside the 2h window, so IN_PROGRESS offers Track Van + Rebook and
+ * CANCELLED offers Rebook.
  */
 function BookingActions({
   booking,
@@ -24,12 +26,18 @@ function BookingActions({
   onRebook,
   onCancel,
   onShowPaymentSummary,
+  onWriteReview,
 }: BookingActionsProps) {
   if (booking.status === 'COMPLETED') {
     return (
-      <Button variant="primary" fullWidth onClick={onShowPaymentSummary}>
-        Payment summary
-      </Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="primary" onClick={onWriteReview}>
+          Write a review
+        </Button>
+        <Button variant="secondary" onClick={onShowPaymentSummary}>
+          Payment summary
+        </Button>
+      </div>
     );
   }
 

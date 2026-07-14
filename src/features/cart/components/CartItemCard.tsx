@@ -38,6 +38,7 @@ function CartItemCard({ item, onToggleSelected, onQuantityChange, onRemove }: Ca
           alt=""
           aria-hidden="true"
           loading="lazy"
+          decoding="async"
           className="size-full object-cover"
         />
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { Button, DataState, Modal } from '../../../components/ui';
 import { DateStrip } from './DateStrip';
@@ -44,13 +44,16 @@ function SlotPickerSheet({ open, onClose, initialSlot, onSelect }: SlotPickerShe
   const [activeDate, setActiveDate] = useState<string>(initialSlot?.date ?? todayIso());
   const [tentative, setTentative] = useState<TimeSlot | null>(initialSlot ?? null);
 
-  // Re-sync with the confirmed slot each time the sheet opens.
-  useEffect(() => {
+  // Re-sync with the confirmed slot each time the sheet opens — render-time
+  // adjustment per the React docs, avoids an effect double-render.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (open) {
       setActiveDate(initialSlot?.date ?? todayIso());
       setTentative(initialSlot ?? null);
     }
-  }, [open, initialSlot]);
+  }
 
   const slotsQuery = useFetchTimeSlots(open ? activeDate : null);
 

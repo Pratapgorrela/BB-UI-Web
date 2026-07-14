@@ -1,4 +1,4 @@
-import { Clock, Plus, Star } from 'lucide-react';
+﻿import { Clock, Plus, Star } from 'lucide-react';
 import { Badge, Card, DiscountBadge } from '../../../components/ui';
 import { formatDuration, formatPrice } from '../../../utils/format';
 import type { Service } from '../types/catalog';
@@ -19,6 +19,7 @@ function ServiceCard({ service, onOpen, onAdd, className = '' }: ServiceCardProp
         alt=""
         aria-hidden="true"
         loading="lazy"
+        decoding="async"
         className="size-full object-cover"
       />
       {service.discountPercent != null && (
@@ -58,7 +59,6 @@ function ServiceCard({ service, onOpen, onAdd, className = '' }: ServiceCardProp
         <button
           type="button"
           onClick={() => onOpen(service)}
-          aria-label={`View ${service.name}`}
           className="flex flex-1 flex-col text-left transition-colors duration-fast ease-fast focus-visible:shadow-focus focus-visible:outline-none"
         >
           {media}

@@ -66,6 +66,7 @@ function RelatedServiceCard({ service, inCart = false, onToggle }: RelatedServic
           alt=""
           aria-hidden="true"
           loading="lazy"
+          decoding="async"
           className="size-full object-cover"
         />
       </div>
@@ -106,7 +107,13 @@ function ServiceDetailSheet({
     <div>
       {/* Hero — edge-to-edge; the panel's rounded top clips the corners */}
       <div className="relative">
-        <img src={service.imageUrl} alt="" aria-hidden="true" className="h-52 w-full object-cover" />
+        <img
+          src={service.imageUrl}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          className="h-52 w-full object-cover"
+        />
         {service.discountPercent != null && (
           <DiscountBadge
             percentage={service.discountPercent}
@@ -184,6 +191,7 @@ function ServiceDetailSheet({
               alt=""
               aria-hidden="true"
               loading="lazy"
+              decoding="async"
               className="size-full object-cover"
             />
           </div>

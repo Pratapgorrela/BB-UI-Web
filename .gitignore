@@ -33,3 +33,8 @@ coverage
 # Claude temp files
 .claude-context-summary.md
 .claude-heartbeat-save.md
+
+# Playwright artifacts
+test-results/
+playwright-report/
+

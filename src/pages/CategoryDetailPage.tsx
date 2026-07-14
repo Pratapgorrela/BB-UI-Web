@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+﻿import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, PackageOpen } from 'lucide-react';
 import { DataState, Modal, Skeleton, StickyBottomBar, useToast } from '../components/ui';
@@ -176,6 +176,8 @@ export function Component() {
                 src={resolved.heroImageUrl}
                 alt=""
                 aria-hidden="true"
+                fetchPriority="high"
+                decoding="async"
                 className="h-60 w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-neutral-900/10 to-transparent" />

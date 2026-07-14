@@ -123,5 +123,6 @@ function ToastCard({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- provider + hook is the established context-module pattern
 export { ToastProvider, useToast };
 export type { ToastVariant, ToastItem };

@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+﻿import { Plus } from 'lucide-react';
 import { DiscountBadge } from '../../../components/ui';
 import { formatPrice } from '../../../utils/format';
 import type { Service } from '../types/catalog';
@@ -20,6 +20,7 @@ function ServiceListItem({ service, onOpen, onAdd, className = '' }: ServiceList
           alt=""
           aria-hidden="true"
           loading="lazy"
+          decoding="async"
           className="size-full object-cover"
         />
       </div>

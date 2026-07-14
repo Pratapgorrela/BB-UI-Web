@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import type { Offer, OfferTheme } from '../types/home';
 
 const scrimStyles: Record<OfferTheme, string> = {
@@ -21,6 +21,7 @@ function OfferCard({ offer }: OfferCardProps) {
         alt=""
         aria-hidden="true"
         loading="lazy"
+        decoding="async"
         className="absolute inset-0 size-full object-cover"
       />
       <div className={`absolute inset-0 ${scrimStyles[offer.theme]}`} aria-hidden="true" />

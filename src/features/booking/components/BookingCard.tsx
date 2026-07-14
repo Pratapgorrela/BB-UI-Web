@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { CalendarClock, Timer } from 'lucide-react';
 import { Card } from '../../../components/ui';
 import { useFetchCategories } from '../../service-catalog';
@@ -33,6 +33,7 @@ function BookingCard({ booking }: BookingCardProps) {
             alt=""
             aria-hidden="true"
             loading="lazy"
+            decoding="async"
             className="size-full object-cover"
           />
         </div>

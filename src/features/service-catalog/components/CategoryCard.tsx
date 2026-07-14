@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import type { ServiceCategory } from '../types/catalog';
 
 interface CategoryCardProps {
@@ -17,6 +17,7 @@ function CategoryCard({ category }: CategoryCardProps) {
           alt=""
           aria-hidden="true"
           loading="lazy"
+          decoding="async"
           className="aspect-182/157 w-full object-cover"
         />
       </div>

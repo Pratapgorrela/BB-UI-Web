@@ -50,11 +50,25 @@ function PaymentSummaryCard({ summary, isLoading, defaultOpen = true }: PaymentS
   const [open, setOpen] = useState(defaultOpen);
 
   if (isLoading && !summary) {
+    // Mirrors the real layout: header row, label + amount line items, total.
     return (
-      <div className="rounded-lg border border-neutral-200 p-4">
-        <Skeleton variant="line" width="50%" />
-        <Skeleton variant="line" width="80%" className="mt-3" />
-        <Skeleton variant="line" width="70%" className="mt-2" />
+      <div className="rounded-lg border border-neutral-200 p-4" aria-hidden="true">
+        <div className="flex items-center justify-between">
+          <Skeleton variant="line" width="40%" />
+          <Skeleton variant="line" width="1rem" />
+        </div>
+        <div className="mt-4 flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <Skeleton variant="line" width="35%" />
+              <Skeleton variant="line" width="4rem" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex items-center justify-between border-t border-neutral-200 pt-3">
+          <Skeleton variant="line" width="25%" height="1.25rem" />
+          <Skeleton variant="line" width="5rem" height="1.25rem" />
+        </div>
       </div>
     );
   }

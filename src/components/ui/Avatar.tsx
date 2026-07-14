@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 
@@ -50,6 +50,8 @@ function Avatar({ src, alt, name, size = 'md', className = '' }: AvatarProps) {
         <img
           src={src}
           alt={alt ?? name ?? 'Avatar'}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
           onError={() => setImgError(true)}
         />

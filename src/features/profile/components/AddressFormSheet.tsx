@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Modal, TextInput, Toggle } from '../../../components/ui';
 import { addressFormSchema } from '../types/address.schema';
@@ -44,7 +44,7 @@ function AddressFormSheet({ open, onClose, address, onSubmit, isPending }: Addre
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<AddressFormValues>({ resolver: zodResolver(addressFormSchema), defaultValues: emptyValues });
@@ -52,7 +52,8 @@ function AddressFormSheet({ open, onClose, address, onSubmit, isPending }: Addre
   const isEditing = address !== null;
   // The default address can't be un-defaulted here (there must always be one).
   const lockDefault = isEditing && address.isDefault;
-  const isDefault = watch('isDefault');
+  // useWatch instead of watch(): memoization-safe subscription (React Compiler lint).
+  const isDefault = useWatch({ control, name: 'isDefault' });
 
   useEffect(() => {
     if (open) reset(address ? toFormValues(address) : emptyValues);

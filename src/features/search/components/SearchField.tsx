@@ -42,7 +42,7 @@ function SearchField({ value, onChange, onSubmit, onBack, onClear }: SearchField
         <input
           ref={inputRef}
           type="text"
-          /* eslint-disable-next-line jsx-a11y/no-autofocus -- the search page exists to type into */
+          // The search page exists to type into — autofocus is the intent here.
           autoFocus
           value={value}
           onChange={(event) => onChange(event.target.value)}

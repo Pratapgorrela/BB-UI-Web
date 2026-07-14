@@ -48,10 +48,16 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
               aria-label={`Go to testimonial ${index + 1}`}
               aria-current={index === active}
               onClick={() => goTo(index)}
-              className={`size-2 rounded-full transition-colors duration-fast ease-fast focus-visible:shadow-focus focus-visible:outline-none ${
-                index === active ? 'bg-primary-500' : 'bg-neutral-300'
-              }`}
-            />
+              /* 24px hit area (a11y target-size) around the 8px visual dot */
+              className="flex size-6 items-center justify-center rounded-full focus-visible:shadow-focus focus-visible:outline-none"
+            >
+              <span
+                aria-hidden="true"
+                className={`size-2 rounded-full transition-colors duration-fast ease-fast ${
+                  index === active ? 'bg-primary-500' : 'bg-neutral-300'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

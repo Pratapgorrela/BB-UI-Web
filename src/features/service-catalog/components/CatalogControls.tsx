@@ -22,11 +22,14 @@ interface CatalogControlsProps {
 
 function CatalogControls({ search, onSearchChange, sortBy, onSortChange }: CatalogControlsProps) {
   const [draft, setDraft] = useState(search);
+  const [syncedSearch, setSyncedSearch] = useState(search);
 
-  // Sync back when the URL changes externally (back/forward, Clear filters).
-  useEffect(() => {
+  // Sync back when the URL changes externally (back/forward, Clear filters) —
+  // render-time adjustment per the React docs, avoids an effect double-render.
+  if (syncedSearch !== search) {
+    setSyncedSearch(search);
     setDraft(search);
-  }, [search]);
+  }
 
   // Debounce keystrokes before pushing the term into the URL (and the query).
   useEffect(() => {

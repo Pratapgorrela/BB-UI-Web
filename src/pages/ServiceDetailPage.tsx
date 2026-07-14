@@ -184,6 +184,8 @@ export function Component() {
                 src={resolved.imageUrl}
                 alt=""
                 aria-hidden="true"
+                fetchPriority="high"
+                decoding="async"
                 className="h-72 w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/50 via-neutral-900/5 to-transparent" />

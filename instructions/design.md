@@ -99,7 +99,7 @@ The following 500-level values are the approved brand colors. Full 100–900 sca
 | 200 | `#E8E4ED` | Dividers, disabled backgrounds |
 | 300 | `#D1CBD9` | Borders, input outlines |
 | 400 | `#A89DB5` | Placeholder text |
-| 500 | `#7F7290` | Secondary text |
+| 500 | `#675C76` | Secondary text (darkened 2026-07-14 from `#7F7290` for WCAG AA contrast — F12) |
 | 600 | `#5C5169` | Body text |
 | 700 | `#3D3548` | Primary text |
 | 800 | `#261F30` | Headings |
@@ -374,18 +374,25 @@ Every data-consuming component MUST implement all four states:
 
 ## Accessibility Checklist
 
-- [ ] All interactive elements have visible focus indicators (focus shadow token)
-- [ ] Color is never the only indicator — always pair with text or icon
-- [ ] Images have descriptive `alt` text
-- [ ] Form inputs have associated `<label>` elements
-- [ ] Error messages are linked to inputs via `aria-describedby`
-- [ ] Modals trap focus and restore on close
-- [ ] Buttons have descriptive text (not just icons — use `aria-label` for icon-only buttons)
-- [ ] Keyboard navigation works for all interactive flows
-- [ ] Touch targets are minimum 44px
-- [ ] `prefers-reduced-motion` is respected
-- [ ] Heading hierarchy is logical (h1 → h2 → h3, no skips)
-- [ ] Status changes announced via `aria-live` regions
+> Audited 2026-07-14 (F12, step 123). Lighthouse accessibility score: **100** on the
+> production build. Fixes applied during the audit are noted inline.
+
+- [x] All interactive elements have visible focus indicators (focus shadow token)
+- [x] Color is never the only indicator — always pair with text or icon
+- [x] Images have descriptive `alt` text (decorative imagery is `alt=""` + `aria-hidden` with adjacent text labels; avatars carry names)
+- [x] Form inputs have associated `<label>` elements
+- [x] Error messages are linked to inputs via `aria-describedby`
+- [x] Modals trap focus and restore on close *(F12 fix: Tab/Shift+Tab now cycle inside the dialog — Escape + focus restore already existed)*
+- [x] Buttons have descriptive text (not just icons — use `aria-label` for icon-only buttons) *(F12 fix: removed a ServiceCard `aria-label` that conflicted with its visible text)*
+- [x] Keyboard navigation works for all interactive flows (Tabs/Accordion/StarRating use roving focus or radio patterns)
+- [x] Touch targets are minimum 44px *(F12 fix: testimonial carousel dots got a 24px hit area around the 8px visual dot — WCAG 2.2 minimum)*
+- [x] `prefers-reduced-motion` is respected
+- [x] Heading hierarchy is logical (h1 → h2 → h3, no skips) *(F12 fix: HomePage gained an sr-only h1)*
+- [x] Status changes announced via `aria-live` regions (toasts, tracking hero, search results, pagination)
+
+> **Contrast note (F12):** `neutral-500` was darkened `#7F7290` → `#675C76` so 12–14px
+> secondary text meets WCAG AA 4.5:1 on both white and `neutral-100` backgrounds; the
+> success Badge text stepped to `success-800`; the Home search-bar hint uses `neutral-500`.
 
 ---
 

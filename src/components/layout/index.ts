@@ -13,3 +13,5 @@ export type { PageHeaderProps } from './PageHeader';
 
 export { NAV_ITEMS } from './navItems';
 export type { NavItem } from './navItems';
+
+export { RouteErrorBoundary } from './RouteErrorBoundary';

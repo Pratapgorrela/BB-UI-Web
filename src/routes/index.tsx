@@ -1,10 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { AppShell, type AppRouteHandle } from '../components/layout';
+import { AppShell, RouteErrorBoundary, type AppRouteHandle } from '../components/layout';
 import { ProtectedRoute } from './ProtectedRoute';
 
 const router = createBrowserRouter([
   {
     element: <AppShell />,
+    errorElement: <RouteErrorBoundary />,
     hydrateFallbackElement: <div className="min-h-dvh bg-neutral-100" />,
     children: [
       {

@@ -387,6 +387,34 @@
 
 **Status mapping (deterministic):** booking `PENDING` → `NOT_DISPATCHED`; booking `CONFIRMED` → `EN_ROUTE` (`etaMinutes` = minutes until `scheduledAt`, clamped 5–45), or `ARRIVING` when ≤ 15 minutes remain; booking `IN_PROGRESS` → `ARRIVED` (`etaMinutes: 0`). `COMPLETED`/`CANCELLED` bookings have no tracking (422 — see endpoint).
 
+### FAQ
+
+> A frequently-asked question shown on the Help & Support screen (F16). Editorial content — guest-readable, read-only from the client.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | |
+| question | string | |
+| answer | string | Plain text |
+| sortOrder | integer | Display order, ascending |
+
+### SupportRequest
+
+> A customer concern raised from Help & Support (F16). Optionally linked to one of the caller's bookings. Status moves server-side only — the client creates and reads, never updates.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | |
+| userId | UUID | FK → User |
+| referenceCode | string | e.g., `"SR-20260714-B7K2"` — shown on the success screen + request list |
+| bookingId | UUID \| null | FK → Booking — `null` when not related to a booking |
+| bookingReferenceCode | string \| null | Display snapshot of the linked booking's reference, set server-side at creation |
+| issueType | enum | `BOOKING_ISSUE` \| `PAYMENT_ISSUE` \| `SERVICE_QUALITY` \| `APP_ISSUE` \| `OTHER` |
+| description | string | |
+| status | enum | `OPEN` \| `IN_REVIEW` \| `RESOLVED` \| `CLOSED` — `OPEN` at creation |
+| createdAt | ISO 8601 | |
+| updatedAt | ISO 8601 | |
+
 ---
 
 ## Booking Status Lifecycle
@@ -707,6 +735,50 @@ exist or belongs to another user. Idempotent (already-read stays read).
 
 ---
 
+### Help & Support — `STATUS: LOCKED (2026-07-14)`
+
+> Backs F16 Help & Support. FAQs are guest-readable editorial content; support requests are auth-scoped (caller's own only). The Call Support card (phone number + hours) is **static client content** — deliberately not an endpoint; if support contact details ever become dynamic, add an endpoint here first.
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| GET | `/api/v1/faqs` | FAQ list for the Help & Support screen | No |
+| GET | `/api/v1/support-requests` | The caller's support requests | Yes |
+| POST | `/api/v1/support-requests` | Raise a concern | Yes |
+
+**GET `/api/v1/faqs`**
+```json
+// Response: Success envelope with FAQ[] sorted by sortOrder ASC
+// (single-resource envelope, no pagination — mirrors /coupons).
+// Mock supports ?scenario=empty|error for state testing.
+```
+
+**GET `/api/v1/support-requests`** — Query: `page` (default 1), `limit` (default 20, max 100)
+```json
+// Response: Paginated envelope with SupportRequest[] sorted by createdAt DESC
+// Error: UNAUTHORIZED (401) — no/invalid access token
+// Mock supports ?scenario=empty|error for state testing.
+```
+
+**POST `/api/v1/support-requests`**
+```json
+// Request
+{
+  "bookingId": "uuid | null",        // optional — omit or null when not booking-related
+  "issueType": "SERVICE_QUALITY",
+  "description": "The stylist arrived 40 minutes late..."
+}
+// Response: 201 with Success envelope containing the created SupportRequest
+// (status OPEN, server-assigned referenceCode; bookingReferenceCode snapshotted
+// from the booking when bookingId is provided)
+// Error: UNAUTHORIZED (401) — no/invalid access token
+// Error: VALIDATION_ERROR (400) — invalid issueType, empty description,
+//        or a bookingId that is unknown / belongs to another user
+// Mock: a description containing "FORCE_500" → 500 (mirrors the catalog convention;
+//       powers the Figma submission-failure state).
+```
+
+---
+
 ## Contract Change Log
 
 | Date | Section | Change | Author |
@@ -721,6 +793,7 @@ exist or belongs to another user. Idempotent (already-read stays read).
 | 2026-07-13 | Notifications | Section locked for F11. Added `NotificationSettings` entity (per-user singleton: `whatsappEnabled` + 4 channel toggles). Endpoints expanded from the 2-endpoint draft: `GET /notifications` gains a `category` (BOOKING/OFFER, derived from `type`) filter + pagination detail; added `GET /notifications/unread-count` (nav badge), `PATCH /notifications/:id/read`, `DELETE /notifications/:id` (dismiss), and `GET`/`PATCH /notification-settings`. No new stored fields on `Notification` — the tab category is derived from `type` | Claude |
 | 2026-07-13 | Tracking | New section added + locked for F15. `Van`, `GeoPoint`, `VanTracking` entities and `GET /bookings/:id/tracking` (auth, owned-or-404; 422 for COMPLETED/CANCELLED). Tracking is a point-in-time snapshot with a deterministic status mapping from the booking's state (PENDING → NOT_DISPATCHED, CONFIRMED → EN_ROUTE/ARRIVING by time-to-slot, IN_PROGRESS → ARRIVED); vans are system-assigned like specialists | Claude |
 | 2026-07-13 | Profile & Addresses | Section locked for F9. No new fields — the drafted `Address` entity + 6 endpoints stand as-is. Clarifications added: `GET /profile` mirrors `/auth/me` (`User`); `GET /addresses` uses the single-resource envelope (`Address[]`, default first) with `?scenario=empty|error`; `isDefault` is exclusive (setting one unsets siblings); first address forced default; deleting the default promotes the next; delete blocked (422) when a PENDING/CONFIRMED booking references the address | Claude |
+| 2026-07-14 | Help & Support | New section added + locked for F16. `FAQ` + `SupportRequest` entities and `GET /faqs` (guest), `GET /support-requests` (auth, paginated, createdAt DESC), `POST /support-requests` (auth, 201; server-assigned `referenceCode` + `bookingReferenceCode` snapshot; optional `bookingId` must belong to the caller — else 400). Call Support contact details are static client content, deliberately not an endpoint | Claude |
 
 ---
 

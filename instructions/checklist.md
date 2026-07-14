@@ -422,9 +422,11 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 159 | Build TermsPoliciesPage — list: Terms of Service, Privacy Policy, Cancellation & Refund Policy, Safety & Hygiene Policy, support email contact card (per Figma) | `[ ]` |
-| 160 | Build policy content pages (static content, scrollable) | `[ ]` |
-| 161 | 4 data states + responsive | `[ ]` |
+| 159 | Build TermsPoliciesPage — list: Terms of Service, Privacy Policy, Cancellation & Refund Policy, Safety & Hygiene Policy, support email contact card (per Figma) | `[x]` |
+| 160 | Build policy content pages (static content, scrollable) | `[x]` |
+| 161 | 4 data states + responsive | `[x]` |
+
+> **F17 complete (2026-07-14).** Terms & policies on `feature/F17-terms-policies`. **No contract section** — policy copy is static client content by contract convention (mirrors F16's `SUPPORT_CONTACT` "deliberately not an endpoint" precedent; JSDoc note in the content module points at contract.md). New `src/features/policies/` mini-slice: [`POLICIES`](../src/features/policies/content/policies.ts) const (4 documents × 4 sections each, sentence-case titles per the design.md voice guide; the cancellation policy states the real F8 **2-hour** cancel/reschedule rule and the checkout tax/pricing copy matches the locked Cart contract). New public routes `/policies` ([TermsPoliciesPage](../src/pages/TermsPoliciesPage.tsx) — HelpSupportPage-pattern list rows: icon badge + title + summary + ChevronRight, plus a support **email contact card** reusing `SUPPORT_CONTACT.email` as `mailto:`) and `/policies/:slug` ([PolicyPage](../src/pages/PolicyPage.tsx) — one dynamic page for all 4 documents: "Last updated" line + scrollable prose sections in a Card). **ProfilePage "Terms & policies" menu stub retired** (`soon:` toast → `to: '/policies'` — the exact F16 repoint pattern; this was the app's last "coming soon" menu row). **4-states note (deliberate interpretation):** content is static — loading/error don't apply; the empty state is the unknown-slug case, routed through the reused `DataState` (`FileQuestion` icon + "Back to policies" CTA, mirroring ServiceDetailPage's 404 handling). **Reused** `PageHeader`, `Card`, `DataState`, `SUPPORT_CONTACT`, date-fns `format`, Lucide icons — no new primitives, no new packages. Verified: `npm run typecheck` + `vite build` clean (PolicyPage 1.60 kB + TermsPoliciesPage 3.02 kB lazy chunks); **161/161 Vitest** (no new server surface — nothing to add); **26/26 browser checks** (scratchpad Playwright, port 5179): list order/titles/summaries, mailto card, all 4 detail pages (title + last-updated + ≥3 sections), 2h-rule copy present, back navigation list↔detail↔profile, unknown-slug empty state + CTA, profile-menu entry point (stub gone), zero horizontal overflow @ 375/768/1024/1440, zero console errors; 2 screenshots. **Caveats:** `npm run lint` still fails repo-wide (pre-existing — planned fix in F12 with the now-approved typescript-eslint packages); Figma 184:7615 not reachable this session (connector auth) — built to brand language from the checklist's screen description, expect a possible design-revision pass like F4/F5/F9; policy copy is editorial first-draft — legal review pending before launch.
 
 ---
 
@@ -449,8 +451,8 @@
 | F14 — Search | 5 | 5 | `[x]` Complete |
 | F15 — Track Van | 4 | 4 | `[x]` Complete |
 | F16 — Help & Support | 10 | 10 | `[x]` Complete |
-| F17 — Terms & Policies | 3 | 0 | `[ ]` Not started |
-| **TOTAL** | **166** | **149** | **90%** |
+| F17 — Terms & Policies | 3 | 3 | `[x]` Complete |
+| **TOTAL** | **166** | **152** | **92%** |
 
 ---
 

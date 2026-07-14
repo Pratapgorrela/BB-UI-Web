@@ -27,7 +27,7 @@ const MENU_LINKS: MenuLink[] = [
   { label: 'Saved addresses', icon: MapPin, to: '/profile/addresses' },
   { label: 'Notifications', icon: Bell, to: '/notifications' },
   { label: 'Help & support', icon: HelpCircle, to: '/help' },
-  { label: 'Terms & policies', icon: FileText, soon: 'Terms & policies are coming soon.' },
+  { label: 'Terms & policies', icon: FileText, to: '/policies' },
 ];
 
 export function Component() {

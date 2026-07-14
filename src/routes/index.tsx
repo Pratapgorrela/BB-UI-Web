@@ -40,6 +40,14 @@ const router = createBrowserRouter([
         lazy: () => import('../pages/HelpSupportPage'),
       },
       {
+        path: '/policies',
+        lazy: () => import('../pages/TermsPoliciesPage'),
+      },
+      {
+        path: '/policies/:slug',
+        lazy: () => import('../pages/PolicyPage'),
+      },
+      {
         path: '/login',
         lazy: () => import('../pages/LoginPage'),
         handle: { hideNav: true } satisfies AppRouteHandle,

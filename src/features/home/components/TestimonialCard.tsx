@@ -1,5 +1,4 @@
-import { Star } from 'lucide-react';
-import { Avatar, Card } from '../../../components/ui';
+import { Avatar, Card, StarRating } from '../../../components/ui';
 import type { Testimonial } from '../types/home';
 
 interface TestimonialCardProps {
@@ -22,24 +21,7 @@ function TestimonialCard({ testimonial }: TestimonialCardProps) {
           />
         </div>
 
-        <div
-          className="flex gap-0.5"
-          role="img"
-          aria-label={`Rated ${testimonial.rating} out of 5`}
-        >
-          {Array.from({ length: 5 }).map((_, index) => (
-            <Star
-              key={index}
-              size={18}
-              aria-hidden="true"
-              className={
-                index < testimonial.rating
-                  ? 'fill-warning-500 text-warning-500'
-                  : 'text-neutral-300'
-              }
-            />
-          ))}
-        </div>
+        <StarRating value={testimonial.rating} size={18} className="gap-0.5" />
 
         <p className="text-body-sm text-neutral-600">“{testimonial.quote}”</p>
         <p className="text-body-sm font-semibold text-neutral-900">

@@ -34,7 +34,7 @@
 | Home & Promotions | `LOCKED` | 2026-07-13 | F3 |
 | Availability & Booking | `LOCKED` | 2026-07-13 | F7, F8 |
 | Profile & Addresses | `LOCKED` | 2026-07-13 | F9 |
-| Reviews | `DRAFT` | — | F10 |
+| Reviews | `LOCKED` | 2026-07-14 | F10 |
 | Notifications & Alerts | `LOCKED` | 2026-07-13 | F11 |
 | Cart & Checkout | `LOCKED` | 2026-07-13 | F13 |
 | Tracking | `LOCKED` | 2026-07-13 | F15 |
@@ -292,15 +292,17 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 105 | Lock Reviews contract section | `[ ]` |
-| 106 | Intel Report for F10 — wait for approval | `[ ]` |
-| 107 | Create Review type + Zod schema | `[ ]` |
-| 108 | Create mock data + mock handlers (create review, list reviews) | `[ ]` |
-| 109 | Create review API layer + hooks | `[ ]` |
-| 110 | Build ReviewForm component (star rating, comment, RHF + Zod) | `[ ]` |
-| 111 | Build ReviewList component (for service detail page + home testimonials) | `[ ]` |
-| 112 | Integrate review CTA on completed booking detail | `[ ]` |
-| 113 | 4 data states + responsive | `[ ]` |
+| 105 | Lock Reviews contract section | `[x]` |
+| 106 | Intel Report for F10 — wait for approval | `[x]` |
+| 107 | Create Review type + Zod schema | `[x]` |
+| 108 | Create mock data + mock handlers (create review, list reviews) | `[x]` |
+| 109 | Create review API layer + hooks | `[x]` |
+| 110 | Build ReviewForm component (star rating, comment, RHF + Zod) | `[x]` |
+| 111 | Build ReviewList component (for service detail page + home testimonials) | `[x]` |
+| 112 | Integrate review CTA on completed booking detail | `[x]` |
+| 113 | 4 data states + responsive | `[x]` |
+
+> **F10 complete (2026-07-14).** Reviews on `feature/F10-reviews` per the now-**LOCKED** Reviews contract section (amended before locking, user decision 2026-07-14: **`POST /reviews` gains required `serviceId`** — a multi-service booking picks which service the review is about; uniqueness stays **one review per booking** → 409 `CONFLICT`; `GET /services/:id/reviews` fleshed out to locked rigor: guest, paginated default 10/max 100, `createdAt` DESC, `user {firstName, avatarUrl}` expanded, 404 unknown service, `?scenario=empty|error`; noted that `Service.rating`/`reviewCount` aggregates are backend-maintained and the mock does **not** recompute them — the live list is the source of truth). **Mock layer:** read-only [`seedReviews`](../src/mocks/data/reviews.data.ts) (10 reviews across 5 services; Priya's is attached to her **first** COMPLETED seed booking via runtime lookup → demos the 409 path, while her second COMPLETED booking — multi-service — is deliberately left un-reviewed → demos the happy path + service selector) merged over localStorage **`bb-mock-reviews`** (creations only, the F16 pattern); new [`reviews.mock`](../src/mocks/handlers/reviews.mock.ts): `GET /services/:id/reviews` (guest, 404 unknown service, scenarios) + `POST /reviews` (requireAuth; Zod 400; owned-or-unknown booking → 400; `serviceId` ∉ items → 400; non-COMPLETED → 422; duplicate booking → 409 `CONFLICT`; `FORCE_500` in comment → 500; expands author via `findUserById`). **Feature slice** `src/features/reviews/` (types → Zod [server `createReviewRequestSchema` + client `writeReviewFormSchema`: rating 1–5 int, comment trim 10–500] → api → `reviewKeys` + `useFetchServiceReviews` (keepPreviousData, 30s) / `useCreateReview` (invalidates the service's reviews, `[Reviews]` logs, toasts at page level) → components → barrel). **New shared [`StarRating`](../src/components/ui/StarRating.tsx)** primitive: display mode (`role="img"`, "Rated X out of 5") **and** input mode (radiogroup pattern, arrow-key roving focus, 44px `size-touch-target` stars) — `TestimonialCard` refactored to the display mode (3 inline copies existed; single-star+numeric spots left alone). **UI:** `ReviewCard` (Avatar + firstName + stars + `formatDistanceToNow` + comment), `ReviewList` (4 `DataState` states, matched skeleton, pager only when totalPages > 1) mounted as a **"Reviews" section on ServiceDetailPage** (guest-visible); `WriteReviewModal` (reused `Modal`, RHF+Zod, `Controller`-wired StarRating input, `Select` service picker **only when the booking has >1 item**, 409 → "already reviewed" info toast + close, other failures → error toast **with the form intact**); `BookingActions` COMPLETED branch → **"Write a review" (primary) + "Payment summary" (secondary)** grid, wired in BookingDetailPage. **Fixed during browser verification:** the modal's reset effect depended on the parent-rebuilt `services` array, so any re-render after a failed submit wiped in-progress input — reset now fires only on the closed→open transition. Verified: `npm run typecheck` + `vite build` clean; **178/178 Vitest** (161 prior + 17 new: seed↔schema + booking-link + service-link + fresh-booking guards; list guest/scoping/DESC/pagination/404/scenarios; create 401/400×5/422/409/FORCE_500/201 shape + author + persistence + post-create 409); **24/24 browser checks** (scratchpad Playwright, port 5179, priya): guest list + newest-first + empty state, CTA on COMPLETED only, validation errors, FORCE_500 form-intact, happy submit → toast → review first on service page, duplicate + seed-reviewed 409 toasts, single-service booking hides the selector, ArrowRight star keyboard nav, zero horizontal overflow @ 375/768/1024/1440, zero unexpected console errors; screenshot captured. **Caveats:** `npm run lint` still fails repo-wide (F12 fixes it with the approved typescript-eslint packages); step-106 Intel Report printed and self-approved (autonomous session — like F16); the header aggregate (`rating`/`reviewCount`) stays seed-static by contract note, so a just-submitted review shows in the list but doesn't bump the header count; no Figma screens exist for F10 (Post-MVP) — built to brand language.
 
 ---
 
@@ -444,7 +446,7 @@
 | F7 — Booking (integrated checkout) | 15 | 15 | `[x]` Complete |
 | F8 — My Bookings | 10 | 10 | `[x]` Complete |
 | F9 — Profile | 8 | 8 | `[x]` Complete |
-| F10 — Reviews | 9 | 0 | `[ ]` Not started |
+| F10 — Reviews | 9 | 9 | `[x]` Complete |
 | F11 — Alerts & Notif Settings | 9 | 9 | `[x]` Complete |
 | F12 — Polish | 6 | 0 | `[ ]` Not started |
 | F13 — Cart & Checkout (+ addendum) | 16 | 16 | `[x]` Complete |
@@ -452,7 +454,7 @@
 | F15 — Track Van | 4 | 4 | `[x]` Complete |
 | F16 — Help & Support | 10 | 10 | `[x]` Complete |
 | F17 — Terms & Policies | 3 | 3 | `[x]` Complete |
-| **TOTAL** | **166** | **152** | **92%** |
+| **TOTAL** | **166** | **161** | **97%** |
 
 ---
 

@@ -17,6 +17,7 @@ import {
   useRescheduleBooking,
 } from '../features/booking';
 import type { BookingDetail, TimeSlot } from '../features/booking';
+import { WriteReviewModal } from '../features/reviews';
 import { useCartStore } from '../store/useCartStore';
 import { getApiError } from '../utils/apiError';
 import { formatDuration } from '../utils/format';
@@ -85,6 +86,7 @@ export function Component() {
   const [summaryNonce, setSummaryNonce] = useState(0);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const cancelBooking = useCancelBooking();
   const rescheduleBooking = useRescheduleBooking();
   const queryClient = useQueryClient();
@@ -174,6 +176,7 @@ export function Component() {
               onRebook={() => handleRebook(booking)}
               onCancel={() => setCancelOpen(true)}
               onShowPaymentSummary={handleShowPaymentSummary}
+              onWriteReview={() => setReviewOpen(true)}
             />
             <SpecialistCard booking={booking} />
             <AddressCard booking={booking} />
@@ -198,6 +201,16 @@ export function Component() {
               open={pickerOpen}
               onClose={() => setPickerOpen(false)}
               onSelect={(slot) => void handleReschedule(slot)}
+            />
+
+            <WriteReviewModal
+              open={reviewOpen}
+              onClose={() => setReviewOpen(false)}
+              bookingId={booking.id}
+              services={booking.items.map((item) => ({
+                id: item.serviceId,
+                name: item.service.name,
+              }))}
             />
           </div>
         )}

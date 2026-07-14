@@ -36,3 +36,6 @@ export type { DataStateProps } from './DataState';
 
 export { Tabs } from './Tabs';
 export type { TabItem, TabsProps } from './Tabs';
+
+export { StarRating } from './StarRating';
+export type { StarRatingProps } from './StarRating';

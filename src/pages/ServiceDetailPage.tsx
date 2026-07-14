@@ -15,6 +15,7 @@ import {
   useFetchServices,
 } from '../features/service-catalog';
 import type { Service } from '../features/service-catalog';
+import { ReviewList } from '../features/reviews';
 import { useCartStore } from '../store/useCartStore';
 import { formatDuration, formatPrice } from '../utils/format';
 import { getApiError } from '../utils/apiError';
@@ -112,6 +113,13 @@ function DetailBody({ service, included, recommended, onOpen, onAdd }: DetailBod
           </div>
         </section>
       )}
+
+      <section className="mt-6" aria-labelledby="reviews-heading">
+        <h2 id="reviews-heading" className="font-heading text-h4 font-semibold text-neutral-800">
+          Reviews
+        </h2>
+        <ReviewList serviceId={service.id} />
+      </section>
     </div>
   );
 }

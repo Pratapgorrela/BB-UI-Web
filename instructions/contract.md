@@ -644,7 +644,15 @@ Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resou
 
 ---
 
-### Reviews (Post-MVP) — `STATUS: DRAFT`
+### Reviews (Post-MVP) — `STATUS: LOCKED (2026-07-14)`
+
+> Backs F10. A review is written **for one service of a completed booking** — the request
+> carries a `serviceId` that must be one of the booking's `items[].serviceId` (multi-service
+> bookings pick which service the review is about; user decision 2026-07-14). Uniqueness is
+> **one review per booking** (`bookingId` FK note) — a second attempt returns 409 `CONFLICT`
+> regardless of service. `Service.rating` / `Service.reviewCount` are backend-maintained
+> aggregates; **the mock does not recompute them** when a review is created (documented mock
+> limitation — the live review list is the source of truth on the service page).
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
@@ -654,10 +662,15 @@ Response: Success envelope with `TimeSlot[]` sorted by `startTime` (single-resou
 **POST `/api/v1/reviews`**
 ```json
 // Request
-{ "bookingId": "UUID", "rating": 1-5, "comment": "string" }
-// Error: BUSINESS_RULE_VIOLATION if booking status !== COMPLETED
-// Error: CONFLICT if review already exists for this booking
+{ "bookingId": "UUID", "serviceId": "UUID", "rating": 1-5, "comment": "string (10–500 chars)" }
+// Response 201: single-resource envelope with the created Review (user expanded)
 ```
+- `VALIDATION_ERROR` (400) — malformed body; unknown `bookingId`; `bookingId` belonging to another user (indistinguishable from unknown, mirrors owned-or-404); `serviceId` not among the booking's `items[].serviceId`.
+- `BUSINESS_RULE_VIOLATION` (422) — booking status is not `COMPLETED`.
+- `CONFLICT` (409) — a review already exists for this booking.
+- `UNAUTHORIZED` (401) — no/expired token.
+
+**GET `/api/v1/services/:id/reviews`** — guest-accessible. Paginated envelope, `createdAt` DESC. Query: `page` (default 1), `limit` (default 10, max 100). Each item expands `user { firstName, avatarUrl }`. `RESOURCE_NOT_FOUND` (404) when the service id does not exist. `?scenario=empty|error` supported (mock-only test triggers, consistent with other sections).
 
 ---
 
@@ -794,6 +807,7 @@ exist or belongs to another user. Idempotent (already-read stays read).
 | 2026-07-13 | Tracking | New section added + locked for F15. `Van`, `GeoPoint`, `VanTracking` entities and `GET /bookings/:id/tracking` (auth, owned-or-404; 422 for COMPLETED/CANCELLED). Tracking is a point-in-time snapshot with a deterministic status mapping from the booking's state (PENDING → NOT_DISPATCHED, CONFIRMED → EN_ROUTE/ARRIVING by time-to-slot, IN_PROGRESS → ARRIVED); vans are system-assigned like specialists | Claude |
 | 2026-07-13 | Profile & Addresses | Section locked for F9. No new fields — the drafted `Address` entity + 6 endpoints stand as-is. Clarifications added: `GET /profile` mirrors `/auth/me` (`User`); `GET /addresses` uses the single-resource envelope (`Address[]`, default first) with `?scenario=empty|error`; `isDefault` is exclusive (setting one unsets siblings); first address forced default; deleting the default promotes the next; delete blocked (422) when a PENDING/CONFIRMED booking references the address | Claude |
 | 2026-07-14 | Help & Support | New section added + locked for F16. `FAQ` + `SupportRequest` entities and `GET /faqs` (guest), `GET /support-requests` (auth, paginated, createdAt DESC), `POST /support-requests` (auth, 201; server-assigned `referenceCode` + `bookingReferenceCode` snapshot; optional `bookingId` must belong to the caller — else 400). Call Support contact details are static client content, deliberately not an endpoint | Claude |
+| 2026-07-14 | Reviews | Section locked for F10. `Review` entity unchanged. `POST /reviews` request gains required `serviceId` (must be one of the booking's `items[].serviceId` — a multi-service booking picks which service the review is about; user decision). Uniqueness stays one review per booking (409 `CONFLICT`). `GET /services/:id/reviews` fleshed out to locked-section rigor: guest, paginated (page/limit, default 10, max 100), `createdAt` DESC, `user { firstName, avatarUrl }` expanded, 404 unknown service, `?scenario=empty\|error`. Noted: `Service.rating`/`reviewCount` aggregates are backend-maintained; the mock does not recompute them | Claude |
 
 ---
 

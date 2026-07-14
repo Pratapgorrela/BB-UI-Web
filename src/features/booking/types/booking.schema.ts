@@ -65,6 +65,40 @@ const bookingDetailSchema = bookingSchema.extend({
   address: bookingAddressSchema,
 });
 
+/* ── Tracking (F15) ── */
+
+const trackingStatusSchema = z.enum(['NOT_DISPATCHED', 'EN_ROUTE', 'ARRIVING', 'ARRIVED']);
+
+const vanSchema = z.object({
+  vanCode: z.string().regex(/^BB-VAN-\d{2}$/),
+  vehicleNumber: z.string().min(1),
+  driverName: z.string().min(1),
+  driverPhone: z.string().regex(/^\+\d{7,15}$/, 'Expected E.164 phone'),
+});
+
+const geoPointSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+
+const trackingDestinationSchema = z.object({
+  label: z.string().min(1),
+  line: z.string().min(1),
+  latitude: z.number().min(-90).max(90).nullable(),
+  longitude: z.number().min(-180).max(180).nullable(),
+});
+
+const vanTrackingSchema = z.object({
+  bookingId: z.uuid(),
+  status: trackingStatusSchema,
+  etaMinutes: z.number().int().nonnegative().nullable(),
+  van: vanSchema,
+  specialist: specialistSchema,
+  destination: trackingDestinationSchema,
+  currentLocation: geoPointSchema.nullable(),
+  updatedAt: z.iso.datetime(),
+});
+
 /* ── Request schemas (validate handler bodies / query params) ── */
 
 const timeSlotsQuerySchema = z.object({
@@ -113,9 +147,14 @@ export {
   cancelBookingFormSchema,
   cancelBookingRequestSchema,
   createBookingRequestSchema,
+  geoPointSchema,
   isoDateSchema,
   rescheduleBookingRequestSchema,
   specialistSchema,
   timeSlotSchema,
   timeSlotsQuerySchema,
+  trackingDestinationSchema,
+  trackingStatusSchema,
+  vanSchema,
+  vanTrackingSchema,
 };

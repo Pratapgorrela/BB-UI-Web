@@ -57,6 +57,11 @@ const router = createBrowserRouter([
             lazy: () => import('../pages/BookingDetailPage'),
           },
           {
+            path: '/bookings/:id/track',
+            lazy: () => import('../pages/TrackVanPage'),
+            handle: { hideNav: true } satisfies AppRouteHandle,
+          },
+          {
             path: '/profile',
             lazy: () => import('../pages/ProfilePage'),
           },
